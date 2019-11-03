@@ -1,0 +1,37 @@
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+.vs
+**/[Bb]in/
+**/[Oo]bj/
+**/[Dd]ebug/
+**/[Rr]elease/
+**/packages/*
+**/_ReSharper.Caches/*
+**/.temporary/*
+**/.cache/*
+**/.resources/*
+**/AppPackages/
+
+# Visual C++ cache files
+**/ipch/
+*.aps
+*.ncb
+*.opensdf
+*.sdf
+*.cachefile
+
+# System file crap
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+.DS_Store
+
+#.Net core
+launchSettings.json
+
+# ignore temp files
+**/App_Data/*
+**/logs/*

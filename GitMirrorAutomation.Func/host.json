@@ -1,0 +1,5 @@
+{
+  "version": "2.0",
+  // max possible, better play it safe
+  "functionTimeout": "00:10:00"
+}
