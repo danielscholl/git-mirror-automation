@@ -33,6 +33,12 @@ stages:
     steps:
     - checkout: self
 
+    # temporarily need both .Net Core 2.1 and 3.x installed due to some internal function dependency on 2.1
+    - task: UseDotNet@2
+      inputs:
+        packageType: 'sdk'
+        version: '2.1.*'
+
     - task: UseDotNet@2
       inputs:
         packageType: 'sdk'
