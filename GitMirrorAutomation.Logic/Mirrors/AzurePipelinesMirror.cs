@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -89,13 +90,20 @@ namespace GitMirrorAutomation.Logic.Mirrors
             if (!_buildToCloneId.HasValue)
                 throw new InvalidOperationException($"Must call {nameof(GetExistingMirrorsAsync)} first before setting up a new mirror!");
 
-            foreach (var build in await GetBuildsAsync(cancellationToken))
+            var json = JsonSerializer.Serialize(new Build
             {
-                if (_config.BuildToClone.Equals(build.Name, StringComparison.OrdinalIgnoreCase))
+                Id = _buildToCloneId.Value,
+                Name = _config.BuildNamePrefix + repository,
+                Repository = new Repository
                 {
-                    break;
+                    Name = repository
                 }
-            }
+            }, JsonSettings.Default);
+            var response = await _httpClient.PostAsync($"build/definitions?api-version=5.1&definitionToCloneId={_buildToCloneId.Value}", new StringContent(json, Encoding.UTF8, "application/json"));
+            response.EnsureSuccessStatusCode();
+            var content = await response.Content.ReadAsStringAsync();
+            // rename & change source repository
+
         }
 
         private async Task<JsonElement> GetBuildDefinitionAsync(int id, CancellationToken cancellationToken)

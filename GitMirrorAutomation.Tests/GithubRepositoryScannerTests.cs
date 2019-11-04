@@ -15,7 +15,7 @@ namespace GitMirrorAutomation.Tests
         {
             const string githubUrl = "https://github.com/MarcStan";
             var scanner = new GithubRepositoryScanner(githubUrl);
-            scanner.GetUrlForRepository("Raytracer").Should().Be($"{githubUrl}/Raytracer.git");
+            scanner.GetUrlForRepository("Raytracer").Should().Be($"{githubUrl}/{repoUnderTest}.git");
         }
 
         [Test]
@@ -24,7 +24,7 @@ namespace GitMirrorAutomation.Tests
             const string githubUrl = "https://github.com/MarcStan";
             var scanner = new GithubRepositoryScanner(githubUrl);
             var repositories = await scanner.GetRepositoriesAsync(CancellationToken.None);
-            repositories.Should().Contain("Resource.Embedder");
+            repositories.Should().Contain(repoUnderTest);
             repositories.Should().HaveCountGreaterOrEqualTo(20);
         }
     }
