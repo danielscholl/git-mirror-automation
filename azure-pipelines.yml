@@ -20,7 +20,7 @@ variables:
     value: GitMirrorAutomation.Func
   - group: 'Deployment Credentials'
   - name: ResourceGroupName
-    value: 'git-mirror'
+    value: 'repo-mirror'
 
 stages:
 - stage: build
