@@ -4,6 +4,8 @@
     {
         public string Target { get; set; } = "";
 
-        public string BuildNameToClone { get; set; } = "";
+        public string BuildToClone { get; set; } = "";
+
+        public string BuildNamePrefix { get; set; } = "";
     }
 }

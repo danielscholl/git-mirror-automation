@@ -1,7 +1,7 @@
-﻿{
+{
   "source": "https://github.com/MarcStan",
   "mirror-via": {
-    "type": "Azure Pipelines",
+    "target": "https://dev.azure.com/marcstanlive/Opensource",
     "buildToClone": "[Github clone] MyBuild",
     "buildNamePrefix": "[Github clone] "
   }
