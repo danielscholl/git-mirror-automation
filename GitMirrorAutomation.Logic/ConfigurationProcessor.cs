@@ -49,7 +49,7 @@ namespace GitMirrorAutomation.Logic
             => new Uri(source).Host.ToLowerInvariant() switch
 
             {
-                "github.com" => new GithubRepositorScanner(source),
+                "github.com" => new GithubRepositoryScanner(source),
                 _ => throw new NotSupportedException($"Unsupported source {source}")
             };
 
