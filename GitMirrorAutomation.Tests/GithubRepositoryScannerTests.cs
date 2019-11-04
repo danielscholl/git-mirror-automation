@@ -15,7 +15,7 @@ namespace GitMirrorAutomation.Tests
         {
             const string githubUrl = "https://github.com/MarcStan";
             var scanner = new GithubRepositoryScanner(githubUrl);
-            scanner.GetUrlForRepository("Raytracer").Should().Be($"{githubUrl}/{repoUnderTest}.git");
+            scanner.GetUrlForRepository(repoUnderTest).Should().Be($"{githubUrl}/{repoUnderTest}.git");
         }
 
         [Test]
