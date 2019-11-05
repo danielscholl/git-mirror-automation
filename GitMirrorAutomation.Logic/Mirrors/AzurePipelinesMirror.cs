@@ -1,5 +1,7 @@
 ﻿using GitMirrorAutomation.Logic.Config;
 using GitMirrorAutomation.Logic.Scanners;
+using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
@@ -18,6 +20,7 @@ namespace GitMirrorAutomation.Logic.Mirrors
     public class AzurePipelinesMirror : IMirrorService
     {
         private static readonly Regex _devOpsRegex = new Regex(@"https:\/\/dev\.azure\.com\/([^/?&# ]+)/([^/?&#]+)");
+        private static readonly Regex _keyVaultRegex = new Regex(@"https:\/\/([^.])+\.vault\.azure\.net");
 
         private readonly HttpClient _httpClient;
         private readonly MirrorConfig _config;
@@ -46,10 +49,20 @@ namespace GitMirrorAutomation.Logic.Mirrors
             {
                 BaseAddress = new Uri($"https://dev.azure.com/{_devOpsAccount}/{_devOpsProject}/_apis/")
             };
-            var token = ""; // TODO: load from keyvault
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", "", token))));
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _log = log;
+        }
+
+        private async Task<string> GetAccessTokenAsync(AccessToken accessToken, CancellationToken cancellationToken)
+        {
+            var match = _keyVaultRegex.Match(accessToken.Source);
+            if (!match.Success)
+                throw new ArgumentException("Currently only keyvault source is supported but found: " + accessToken.Source);
+            var tokenProvider = new AzureServiceTokenProvider();
+            var kvClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(tokenProvider.KeyVaultTokenCallback));
+
+            var secret = await kvClient.GetSecretAsync(accessToken.Source, accessToken.SecretName, cancellationToken);
+            return secret.Value;
         }
 
         public async Task<Mirror[]> GetExistingMirrorsAsync(CancellationToken cancellationToken)
@@ -94,6 +107,12 @@ namespace GitMirrorAutomation.Logic.Mirrors
         {
             if (!_buildToCloneId.HasValue)
                 throw new InvalidOperationException($"Must call {nameof(GetExistingMirrorsAsync)} first before setting up a new mirror!");
+
+            if (_httpClient.DefaultRequestHeaders.Authorization == null)
+            {
+                var token = await GetAccessTokenAsync(_config.AccessToken, cancellationToken);
+                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", "", token))));
+            }
 
             var buildDefinition = await GetBuildDefinitionAsync(_buildToCloneId.Value, cancellationToken);
             // real inefficient but there seems to be no way to modify a JsonElement + this usually isn't executed a million times..
