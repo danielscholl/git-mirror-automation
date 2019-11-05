@@ -36,7 +36,7 @@ namespace GitMirrorAutomation.Logic
                 return;
             }
             _log.LogInformation($"{repos.Length - toMirror.Length} repositories are already mirrored, setting up mirrors for the remaining {toMirror.Length} repositories..");
-            foreach (var repo in repos)
+            foreach (var repo in toMirror)
             {
                 _log.LogInformation($"Creating mirror for repository {repo}");
                 await mirrorService.SetupMirrorAsync(repo, cancellationToken);

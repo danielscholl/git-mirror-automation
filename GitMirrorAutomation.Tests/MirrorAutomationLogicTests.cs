@@ -74,5 +74,31 @@ namespace GitMirrorAutomation.Tests
 
             mirror.Verify(x => x.SetupMirrorAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
         }
+
+        [Test]
+        public async Task When_repositories_exist_for_some_Then_should_mirror_others()
+        {
+            var automation = new MirrorAutomationLogic(new Mock<ILogger>().Object);
+            var scanner = new Mock<IRepositoryScanner>();
+            scanner.Setup(x => x.GetRepositoriesAsync(It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(new[]
+                    {
+                        "Repo1",
+                        "Repo2"
+                    }));
+            var mirror = new Mock<IMirrorService>();
+            mirror.Setup(x => x.GetExistingMirrorsAsync(It.IsAny<CancellationToken>()))
+                .Returns(Task.FromResult(new[]
+                {
+                    new Mirror
+                    {
+                        Repository = "Repo1"
+                    }
+                }));
+            await automation.ProcessAsync(scanner.Object, mirror.Object, CancellationToken.None);
+
+            mirror.Verify(x => x.SetupMirrorAsync("Repo2", It.IsAny<CancellationToken>()), Times.Once);
+            mirror.Verify(x => x.SetupMirrorAsync(It.Is<string>(x => x != "Repo2"), It.IsAny<CancellationToken>()), Times.Never);
+        }
     }
 }
