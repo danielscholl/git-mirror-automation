@@ -53,24 +53,13 @@ namespace GitMirrorAutomation.Logic.Mirrors
             _log = log;
         }
 
-        private async Task<string> GetAccessTokenAsync(AccessToken accessToken, CancellationToken cancellationToken)
-        {
-            var match = _keyVaultRegex.Match(accessToken.Source);
-            if (!match.Success)
-                throw new ArgumentException("Currently only keyvault source is supported but found: " + accessToken.Source);
-            var tokenProvider = new AzureServiceTokenProvider();
-            var kvClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(tokenProvider.KeyVaultTokenCallback));
-
-            var secret = await kvClient.GetSecretAsync(accessToken.Source, accessToken.SecretName, cancellationToken);
-            return secret.Value;
-        }
-
         public async Task<Mirror[]> GetExistingMirrorsAsync(CancellationToken cancellationToken)
         {
             var mirrors = new List<Mirror>();
             var builds = await GetBuildsAsync(cancellationToken);
             var mirrorBuilds = builds.Where(b => b.Name.StartsWith(_config.BuildNamePrefix)).ToArray();
             _log.LogInformation($"Looking for existing mirrors in {builds.Length} builds ({mirrorBuilds.Length} of those are mirror builds)..");
+            await EnsureAccessToken(cancellationToken);
             foreach (var build in mirrorBuilds)
             {
                 if (!_buildToCloneId.HasValue &&
@@ -108,11 +97,7 @@ namespace GitMirrorAutomation.Logic.Mirrors
             if (!_buildToCloneId.HasValue)
                 throw new InvalidOperationException($"Must call {nameof(GetExistingMirrorsAsync)} first before setting up a new mirror!");
 
-            if (_httpClient.DefaultRequestHeaders.Authorization == null)
-            {
-                var token = await GetAccessTokenAsync(_config.AccessToken, cancellationToken);
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", "", token))));
-            }
+            await EnsureAccessToken(cancellationToken);
 
             var buildDefinition = await GetBuildDefinitionAsync(_buildToCloneId.Value, cancellationToken);
             // real inefficient but there seems to be no way to modify a JsonElement + this usually isn't executed a million times..
@@ -130,6 +115,27 @@ namespace GitMirrorAutomation.Logic.Mirrors
             var json = jObject.ToString();
             var response = await _httpClient.PostAsync("build/definitions?api-version=5.1", new StringContent(json, Encoding.UTF8, "application/json"));
             response.EnsureSuccessStatusCode();
+        }
+
+        private async Task EnsureAccessToken(CancellationToken cancellationToken)
+        {
+            if (_httpClient.DefaultRequestHeaders.Authorization != null)
+                return;
+
+            var token = await GetAccessTokenAsync(_config.AccessToken, cancellationToken);
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", "", token))));
+        }
+
+        private async Task<string> GetAccessTokenAsync(AccessToken accessToken, CancellationToken cancellationToken)
+        {
+            var match = _keyVaultRegex.Match(accessToken.Source);
+            if (!match.Success)
+                throw new ArgumentException("Currently only keyvault source is supported but found: " + accessToken.Source);
+            var tokenProvider = new AzureServiceTokenProvider();
+            var kvClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(tokenProvider.KeyVaultTokenCallback));
+
+            var secret = await kvClient.GetSecretAsync(accessToken.Source, accessToken.SecretName, cancellationToken);
+            return secret.Value;
         }
 
         private async Task<JsonElement> GetBuildDefinitionAsync(int id, CancellationToken cancellationToken)
