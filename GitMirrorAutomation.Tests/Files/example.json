@@ -3,6 +3,10 @@
   "mirror-via": {
     "target": "https://dev.azure.com/marcstanlive/Opensource",
     "buildToClone": "[Github clone] MyBuild",
-    "buildNamePrefix": "[Github clone] "
+    "buildNamePrefix": "[Github clone] ",
+    "accessToken": {
+      "source": "https://mykeyvault.vault.azure.net",
+      "secretName": "MySecret"
+    }
   }
 }

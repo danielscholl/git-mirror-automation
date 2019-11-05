@@ -1,10 +1,12 @@
 ﻿using GitMirrorAutomation.Logic.Config;
 using GitMirrorAutomation.Logic.Scanners;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -44,6 +46,9 @@ namespace GitMirrorAutomation.Logic.Mirrors
             {
                 BaseAddress = new Uri($"https://dev.azure.com/{_devOpsAccount}/{_devOpsProject}/_apis/")
             };
+            var token = ""; // TODO: load from keyvault
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", "", token))));
+            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _log = log;
         }
 
@@ -90,20 +95,22 @@ namespace GitMirrorAutomation.Logic.Mirrors
             if (!_buildToCloneId.HasValue)
                 throw new InvalidOperationException($"Must call {nameof(GetExistingMirrorsAsync)} first before setting up a new mirror!");
 
-            var json = JsonSerializer.Serialize(new Build
-            {
-                Id = _buildToCloneId.Value,
-                Name = _config.BuildNamePrefix + repository,
-                Repository = new Repository
-                {
-                    Name = repository
-                }
-            }, JsonSettings.Default);
-            var response = await _httpClient.PostAsync($"build/definitions?api-version=5.1&definitionToCloneId={_buildToCloneId.Value}", new StringContent(json, Encoding.UTF8, "application/json"));
-            response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadAsStringAsync();
-            // rename & change source repository
+            var buildDefinition = await GetBuildDefinitionAsync(_buildToCloneId.Value, cancellationToken);
+            // real inefficient but there seems to be no way to modify a JsonElement + this usually isn't executed a million times..
+            var jObject = JObject.Parse(buildDefinition.GetRawText());
+            jObject["repository"]["url"] = _repositorySource.GetUrlForRepository(repository);
 
+            if (_repositorySource.Type != "Github")
+                throw new NotSupportedException($"Currently only github is a supported repository source!");
+
+            // id is needed and seems to be dependent on type of source
+            jObject["repository"]["id"] = "Github/" + repository;
+            jObject["repository"]["name"] = "Github/" + repository;
+            jObject["name"] = _config.BuildNamePrefix + repository;
+
+            var json = jObject.ToString();
+            var response = await _httpClient.PostAsync("build/definitions?api-version=5.1", new StringContent(json, Encoding.UTF8, "application/json"));
+            response.EnsureSuccessStatusCode();
         }
 
         private async Task<JsonElement> GetBuildDefinitionAsync(int id, CancellationToken cancellationToken)
