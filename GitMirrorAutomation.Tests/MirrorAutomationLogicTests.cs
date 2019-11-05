@@ -15,7 +15,7 @@ namespace GitMirrorAutomation.Tests
         public async Task When_no_repositories_exist_should_not_mirror_anything()
         {
             var automation = new MirrorAutomationLogic(new Mock<ILogger>().Object);
-            var scanner = new Mock<IRepositoryScanner>();
+            var scanner = new Mock<IRepositorySource>();
             scanner.Setup(x => x.GetRepositoriesAsync(It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(new string[0]));
             var mirror = new Mock<IMirrorService>();
@@ -30,7 +30,7 @@ namespace GitMirrorAutomation.Tests
         public async Task When_repositories_exist_and_they_are_not_mirrored_Then_should_mirror()
         {
             var automation = new MirrorAutomationLogic(new Mock<ILogger>().Object);
-            var scanner = new Mock<IRepositoryScanner>();
+            var scanner = new Mock<IRepositorySource>();
             scanner.Setup(x => x.GetRepositoriesAsync(It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(new[]
                     {
@@ -50,7 +50,7 @@ namespace GitMirrorAutomation.Tests
         public async Task When_repositories_exist_but_are_mirrored_Then_should_not_mirror_again()
         {
             var automation = new MirrorAutomationLogic(new Mock<ILogger>().Object);
-            var scanner = new Mock<IRepositoryScanner>();
+            var scanner = new Mock<IRepositorySource>();
             scanner.Setup(x => x.GetRepositoriesAsync(It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(new[]
                     {
@@ -79,7 +79,7 @@ namespace GitMirrorAutomation.Tests
         public async Task When_repositories_exist_for_some_Then_should_mirror_others()
         {
             var automation = new MirrorAutomationLogic(new Mock<ILogger>().Object);
-            var scanner = new Mock<IRepositoryScanner>();
+            var scanner = new Mock<IRepositorySource>();
             scanner.Setup(x => x.GetRepositoriesAsync(It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(new[]
                     {

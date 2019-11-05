@@ -10,14 +10,14 @@ using System.Threading.Tasks;
 
 namespace GitMirrorAutomation.Logic.Scanners
 {
-    public class GithubRepositoryScanner : IRepositoryScanner
+    public class GithubRepositorySource : IRepositorySource
     {
         private static readonly Regex _userRegex = new Regex(@"https:\/\/github\.com\/([^/?&# ]+)");
 
         private readonly HttpClient _client;
         private readonly string _userName;
 
-        public GithubRepositoryScanner(string userUrl)
+        public GithubRepositorySource(string userUrl)
         {
             var match = _userRegex.Match(userUrl);
             if (!match.Success)
@@ -34,6 +34,8 @@ namespace GitMirrorAutomation.Logic.Scanners
             // https://developer.github.com/v3/#user-agent-required
             _client.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("GitMirrorAutomation", "v1"));
         }
+
+        public string Type => "Github";
 
         public async Task<string[]> GetRepositoriesAsync(CancellationToken cancellationToken)
         {

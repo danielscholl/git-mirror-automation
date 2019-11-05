@@ -19,7 +19,7 @@ namespace GitMirrorAutomation.Logic
         }
 
         public async Task ProcessAsync(
-            IRepositoryScanner scanner,
+            IRepositorySource scanner,
             IMirrorService mirrorService,
             CancellationToken cancellationToken)
         {

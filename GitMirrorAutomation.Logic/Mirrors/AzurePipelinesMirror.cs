@@ -22,16 +22,16 @@ namespace GitMirrorAutomation.Logic.Mirrors
         private readonly string _devOpsAccount;
         private readonly string _devOpsProject;
         private int? _buildToCloneId;
-        private readonly IRepositoryScanner _repositoryScanner;
+        private readonly IRepositorySource _repositorySource;
         private readonly ILogger _log;
 
         public AzurePipelinesMirror(
             MirrorConfig config,
-            IRepositoryScanner repositoryScanner,
+            IRepositorySource repositoryScanner,
             ILogger log)
         {
             _config = config;
-            _repositoryScanner = repositoryScanner;
+            _repositorySource = repositoryScanner;
 
             var match = _devOpsRegex.Match(config.Target);
             if (!match.Success)
@@ -62,7 +62,7 @@ namespace GitMirrorAutomation.Logic.Mirrors
                 }
 
                 var repoName = build.Name.Substring(_config.BuildNamePrefix.Length);
-                var expectedRepoUrl = _repositoryScanner.GetUrlForRepository(repoName);
+                var expectedRepoUrl = _repositorySource.GetUrlForRepository(repoName);
 
                 // repo isn't loaded in overall list, so get definition
                 // to ensure build is using correct source repo

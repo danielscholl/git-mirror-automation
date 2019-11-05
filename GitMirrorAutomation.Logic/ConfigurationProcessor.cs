@@ -16,15 +16,15 @@ namespace GitMirrorAutomation.Logic
             _log = log;
         }
 
-        public IRepositoryScanner GetRepositoryScanner(string source)
+        public IRepositorySource GetRepositoryScanner(string source)
             => new Uri(source).Host.ToLowerInvariant() switch
 
             {
-                "github.com" => new GithubRepositoryScanner(source),
+                "github.com" => new GithubRepositorySource(source),
                 _ => throw new NotSupportedException($"Unsupported source {source}")
             };
 
-        public IMirrorService GetMirrorService(MirrorConfig mirrorConfig, IRepositoryScanner scanner)
+        public IMirrorService GetMirrorService(MirrorConfig mirrorConfig, IRepositorySource scanner)
             => new Uri(mirrorConfig.Target).Host.ToLowerInvariant() switch
             {
                 "dev.azure.com" => new AzurePipelinesMirror(mirrorConfig, scanner, _log),
