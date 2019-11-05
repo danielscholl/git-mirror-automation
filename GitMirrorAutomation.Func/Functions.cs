@@ -26,12 +26,14 @@ namespace GitMirrorAutomation.Func
             var storageProvider = new AzureBlobStorageProvider(connectionString, "configuration");
 
             var configurations = await LoadConfigFilesAsync(storageProvider, cancellationToken);
-            var scanner = new ConfigurationProcessor(log);
-
+            var configProcessor = new ConfigurationProcessor(log);
             foreach (var cfg in configurations)
             {
+                var automation = new MirrorAutomationLogic(log);
+                var scanner = configProcessor.GetRepositoryScanner(cfg.Source);
+                var mirrorService = configProcessor.GetMirrorService(cfg.MirrorConfig, scanner);
                 log.LogInformation($"Processing source {cfg.Source}");
-                await scanner.ProcessAsync(cfg, cancellationToken);
+                await automation.ProcessAsync(scanner, mirrorService, cancellationToken);
             }
         }
 
