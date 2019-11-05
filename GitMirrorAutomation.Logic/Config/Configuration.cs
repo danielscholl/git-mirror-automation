@@ -10,6 +10,6 @@ namespace GitMirrorAutomation.Logic.Config
         public MirrorViaConfig MirrorViaConfig { get; set; } = new MirrorViaConfig();
 
         [JsonPropertyName("mirror-to")]
-        public MirrorToConfig MirrorToConfig { get; set; } = new MirrorToConfig();
+        public MirrorToConfig[] MirrorToConfig { get; set; } = new MirrorToConfig[0];
     }
 }

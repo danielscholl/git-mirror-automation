@@ -1,7 +1,6 @@
 ﻿using GitMirrorAutomation.Logic.Config;
+using GitMirrorAutomation.Logic.Helpers;
 using GitMirrorAutomation.Logic.Sources;
-using Microsoft.Azure.KeyVault;
-using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
@@ -20,7 +19,6 @@ namespace GitMirrorAutomation.Logic.Mirrors
     public class AzurePipelinesMirror : IMirrorService
     {
         private static readonly Regex _devOpsRegex = new Regex(@"https:\/\/dev\.azure\.com\/([^/?&# ]+)/([^/?&#]+)");
-        private static readonly Regex _keyVaultRegex = new Regex(@"https:\/\/([^.])+\.vault\.azure\.net");
 
         private readonly HttpClient _httpClient;
         private readonly MirrorViaConfig _config;
@@ -105,7 +103,7 @@ namespace GitMirrorAutomation.Logic.Mirrors
             jObject["repository"]["url"] = _repositorySource.GetUrlForRepository(repository);
 
             if (_repositorySource.Type != "Github")
-                throw new NotSupportedException($"Currently only github is a supported repository source!");
+                throw new NotSupportedException("Currently only github is a supported repository source!");
 
             // id is needed and seems to be dependent on type of source
             jObject["repository"]["id"] = "Github/" + repository;
@@ -122,20 +120,8 @@ namespace GitMirrorAutomation.Logic.Mirrors
             if (_httpClient.DefaultRequestHeaders.Authorization != null)
                 return;
 
-            var token = await GetAccessTokenAsync(_config.AccessToken, cancellationToken);
+            var token = await new AccessTokenHelper().GetAsync(_config.AccessToken, cancellationToken);
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", "", token))));
-        }
-
-        private async Task<string> GetAccessTokenAsync(AccessToken accessToken, CancellationToken cancellationToken)
-        {
-            var match = _keyVaultRegex.Match(accessToken.Source);
-            if (!match.Success)
-                throw new ArgumentException("Currently only keyvault source is supported but found: " + accessToken.Source);
-            var tokenProvider = new AzureServiceTokenProvider();
-            var kvClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(tokenProvider.KeyVaultTokenCallback));
-
-            var secret = await kvClient.GetSecretAsync(accessToken.Source, accessToken.SecretName, cancellationToken);
-            return secret.Value;
         }
 
         private async Task<JsonElement> GetBuildDefinitionAsync(int id, CancellationToken cancellationToken)
