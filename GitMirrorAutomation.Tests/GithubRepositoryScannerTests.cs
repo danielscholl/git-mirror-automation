@@ -1,6 +1,6 @@
 ﻿
 using FluentAssertions;
-using GitMirrorAutomation.Logic.Scanners;
+using GitMirrorAutomation.Logic.Sources;
 using NUnit.Framework;
 using System.Threading;
 using System.Threading.Tasks;

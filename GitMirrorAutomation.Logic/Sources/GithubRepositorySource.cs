@@ -8,7 +8,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace GitMirrorAutomation.Logic.Scanners
+namespace GitMirrorAutomation.Logic.Sources
 {
     public class GithubRepositorySource : IRepositorySource
     {

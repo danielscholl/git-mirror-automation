@@ -1,5 +1,5 @@
 ﻿using GitMirrorAutomation.Logic.Config;
-using GitMirrorAutomation.Logic.Scanners;
+using GitMirrorAutomation.Logic.Sources;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Logging;

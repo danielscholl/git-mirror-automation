@@ -1,6 +1,6 @@
 ﻿using GitMirrorAutomation.Logic.Config;
 using GitMirrorAutomation.Logic.Mirrors;
-using GitMirrorAutomation.Logic.Scanners;
+using GitMirrorAutomation.Logic.Sources;
 using Microsoft.Extensions.Logging;
 using System;
 
