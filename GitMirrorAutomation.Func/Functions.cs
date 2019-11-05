@@ -31,7 +31,7 @@ namespace GitMirrorAutomation.Func
             {
                 var automation = new MirrorAutomationLogic(log);
                 var scanner = configProcessor.GetRepositoryScanner(cfg.Source);
-                var mirrorService = configProcessor.GetMirrorService(cfg.MirrorConfig, scanner);
+                var mirrorService = configProcessor.GetMirrorService(cfg.MirrorViaConfig, scanner);
                 log.LogInformation($"Processing source {cfg.Source}");
                 await automation.ProcessAsync(scanner, mirrorService, cancellationToken);
             }

@@ -23,7 +23,7 @@ namespace GitMirrorAutomation.Logic.Mirrors
         private static readonly Regex _keyVaultRegex = new Regex(@"https:\/\/([^.])+\.vault\.azure\.net");
 
         private readonly HttpClient _httpClient;
-        private readonly MirrorConfig _config;
+        private readonly MirrorViaConfig _config;
         private readonly string _devOpsAccount;
         private readonly string _devOpsProject;
         private int? _buildToCloneId;
@@ -31,16 +31,16 @@ namespace GitMirrorAutomation.Logic.Mirrors
         private readonly ILogger _log;
 
         public AzurePipelinesMirror(
-            MirrorConfig config,
+            MirrorViaConfig config,
             IRepositorySource repositoryScanner,
             ILogger log)
         {
             _config = config;
             _repositorySource = repositoryScanner;
 
-            var match = _devOpsRegex.Match(config.Target);
+            var match = _devOpsRegex.Match(config.Type);
             if (!match.Success)
-                throw new ArgumentException("Expected a valid devops account url but got: " + config.Target);
+                throw new ArgumentException("Expected a valid devops account url but got: " + config.Type);
 
             _devOpsAccount = match.Groups[1].Value;
             _devOpsProject = match.Groups[2].Value;

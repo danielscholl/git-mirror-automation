@@ -24,11 +24,11 @@ namespace GitMirrorAutomation.Logic
                 _ => throw new NotSupportedException($"Unsupported source {source}")
             };
 
-        public IMirrorService GetMirrorService(MirrorConfig mirrorConfig, IRepositorySource scanner)
-            => new Uri(mirrorConfig.Target).Host.ToLowerInvariant() switch
+        public IMirrorService GetMirrorService(MirrorViaConfig mirrorConfig, IRepositorySource scanner)
+            => new Uri(mirrorConfig.Type).Host.ToLowerInvariant() switch
             {
                 "dev.azure.com" => new AzurePipelinesMirror(mirrorConfig, scanner, _log),
-                _ => throw new NotSupportedException($"Unsupported mirror {mirrorConfig.Target}")
+                _ => throw new NotSupportedException($"Unsupported mirror {mirrorConfig.Type}")
             };
     }
 }

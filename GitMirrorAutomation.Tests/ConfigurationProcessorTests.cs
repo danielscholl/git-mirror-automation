@@ -21,11 +21,11 @@ namespace GitMirrorAutomation.Tests
         {
             var processor = new ConfigurationProcessor(new Mock<ILogger>().Object);
             var scanner = processor.GetRepositoryScanner("https://github.com/MarcStan");
-            var mirror = processor.GetMirrorService(new Logic.Config.MirrorConfig
+            var mirror = processor.GetMirrorService(new Logic.Config.MirrorViaConfig
             {
                 BuildNamePrefix = "[Build]",
                 BuildToClone = "[Build] A",
-                Target = "https://dev.azure.com/marcstanlive/Opensource"
+                Type = "https://dev.azure.com/marcstanlive/Opensource"
             }, scanner);
             mirror.Should().NotBeNull();
         }

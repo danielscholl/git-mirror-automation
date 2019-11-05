@@ -1,12 +1,28 @@
 {
   "source": "https://github.com/MarcStan",
   "mirror-via": {
-    "target": "https://dev.azure.com/marcstanlive/Opensource",
+    "type": "https://dev.azure.com/marcstanlive/Opensource",
     "buildToClone": "[Github clone] MyBuild",
     "buildNamePrefix": "[Github clone] ",
     "accessToken": {
       "source": "https://mykeyvault.vault.azure.net",
-      "secretName": "MySecret"
+      "secretName": "MyDevOpsBuildSecret"
     }
-  }
+  },
+  "mirror-to": [
+    {
+      "target": "https://gitlab.com/MarcStan",
+      "accessToken": {
+        "source": "https://mykeyvault.vault.azure.net",
+        "secretName": "MyGitlabSecret"
+      }
+    },
+    {
+      "target": "https://dev.azure.com/marcstanlive/Opensource",
+      "accessToken": {
+        "source": "https://mykeyvault.vault.azure.net",
+        "secretName": "MyDevOpsGitSecret"
+      }
+    }
+  ]
 }
