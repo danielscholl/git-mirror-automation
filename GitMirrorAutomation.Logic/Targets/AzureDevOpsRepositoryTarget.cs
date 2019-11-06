@@ -31,13 +31,10 @@ namespace GitMirrorAutomation.Logic.Targets
 
         public async Task<IRepository[]> GetRepositoriesAsync(CancellationToken cancellationToken)
         {
-            return await GetCollectionAsync<Repository>("git/repositories?api-version=5.1", cancellationToken);
+            return await GetCollectionAsync<AzureDevOpsRepository>("git/repositories?api-version=5.1", cancellationToken);
         }
 
-        public string GetRepositoryId(string repository)
-            => repository;
-
-        public string GetRepositoryUrl(string repository)
-            => $"https://dev.azure.com/{DevOpsAccount}/{DevOpsProject}/_git/{repository}";
+        public string GetRepositoryUrl(IRepository repository)
+            => repository is AzureDevOpsRepository adoRepo ? adoRepo.GitUrl : $"https://dev.azure.com/{DevOpsAccount}/{DevOpsProject}/_git/{repository.Name}";
     }
 }

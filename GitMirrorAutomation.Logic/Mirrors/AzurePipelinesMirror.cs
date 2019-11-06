@@ -49,9 +49,12 @@ namespace GitMirrorAutomation.Logic.Mirrors
                 }
 
                 var repoName = build.Name.Substring(_config.BuildNamePrefix.Length);
-                var expectedRepoUrl = _repositorySource.GetRepositoryUrl(repoName);
+                var expectedRepoUrl = _repositorySource.GetRepositoryUrl(new Repository
+                {
+                    Name = repoName
+                });
 
-                // repo isn't loaded in overall list, so get definition
+                // repo property isn't loaded in overall list, so get definition
                 // to ensure build is using correct source repo
                 var buildDefinition = await GetBuildDefinitionAsync(build.Id, cancellationToken);
                 var buildWithRepo = JsonSerializer.Deserialize<Build>(buildDefinition.GetRawText(), JsonSettings.Default);
@@ -87,8 +90,9 @@ namespace GitMirrorAutomation.Logic.Mirrors
             switch (_repositorySource.Type)
             {
                 case "github.com":
-                    var gh = (GithubUserRepositorySource)_repositorySource;
-                    var githubWebUrl = _repositorySource.GetRepositoryUrl(repository.Name);
+                    var gh = (GithubRepositorySource)_repositorySource;
+                    var githubWebUrl = _repositorySource.GetRepositoryUrl(repository);
+                    // has .git suffix which must not be used with some of the properties which we must set
                     if (githubWebUrl.EndsWith(".git", StringComparison.OrdinalIgnoreCase))
                         githubWebUrl = githubWebUrl.Substring(0, githubWebUrl.Length - ".git".Length);
 
@@ -148,10 +152,10 @@ namespace GitMirrorAutomation.Logic.Mirrors
 
             public int Id { get; set; }
 
-            public Repository Repository { get; set; } = new Repository();
+            public BuildRepository Repository { get; set; } = new BuildRepository();
         }
 
-        private class Repository
+        private class BuildRepository
         {
             public string Url { get; set; } = "";
 

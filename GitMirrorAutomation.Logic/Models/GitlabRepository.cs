@@ -2,9 +2,9 @@
 
 namespace GitMirrorAutomation.Logic.Models
 {
-    public class GithubRepository : Repository
+    public class GitlabRepository : Repository
     {
-        [JsonPropertyName("clone_url")]
+        [JsonPropertyName("http_url_to_repo")]
         public string GitUrl { get; set; } = "";
     }
 }

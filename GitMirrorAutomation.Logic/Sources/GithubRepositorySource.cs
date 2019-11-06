@@ -37,7 +37,7 @@ namespace GitMirrorAutomation.Logic.Sources
             return await _httpClient.GetPaginatedAsync<GithubRepository>(string.Format(_paginationTemplate, UserName), cancellationToken);
         }
 
-        public string GetRepositoryUrl(string repository)
-            => $"https://github.com/{UserName}/{repository}.git";
+        public string GetRepositoryUrl(IRepository repository)
+            => repository is GithubRepository ghRepo ? ghRepo.GitUrl : $"https://github.com/{UserName}/{repository.Name}.git";
     }
 }

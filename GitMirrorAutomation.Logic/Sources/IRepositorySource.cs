@@ -10,6 +10,6 @@ namespace GitMirrorAutomation.Logic.Sources
 
         Task<IRepository[]> GetRepositoriesAsync(CancellationToken cancellationToken);
 
-        string GetRepositoryUrl(string repository);
+        string GetRepositoryUrl(IRepository repository);
     }
 }

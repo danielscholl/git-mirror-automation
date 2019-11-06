@@ -67,14 +67,11 @@ namespace GitMirrorAutomation.Logic.Targets
         {
             await EnsureAccessToken(cancellationToken);
 
-            return (await _httpClient.GetPaginatedAsync<Repository>($"users/{_userName}/projects", cancellationToken))
+            return (await _httpClient.GetPaginatedAsync<GitlabRepository>($"users/{_userName}/projects", cancellationToken))
                 .ToArray();
         }
 
-        public string GetRepositoryUrl(string repository)
-            => $"https://gitlab.com/{_userName}/{repository}.git";
-
-        public string GetRepositoryId(string repository)
-            => throw new NotImplementedException();
+        public string GetRepositoryUrl(IRepository repository)
+            => repository is GitlabRepository glRepo ? glRepo.GitUrl : $"https://gitlab.com/{_userName}/{repository.Name}.git";
     }
 }
