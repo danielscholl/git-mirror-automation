@@ -31,6 +31,8 @@ namespace GitMirrorAutomation.Logic.Targets
 
         public async Task<IRepository[]> GetRepositoriesAsync(CancellationToken cancellationToken)
         {
+            await EnsureAccessToken(cancellationToken);
+
             return await GetCollectionAsync<AzureDevOpsRepository>("git/repositories?api-version=5.1", cancellationToken);
         }
 

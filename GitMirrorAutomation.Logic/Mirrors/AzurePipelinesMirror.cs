@@ -35,11 +35,12 @@ namespace GitMirrorAutomation.Logic.Mirrors
 
         public async Task<Mirror[]> GetExistingMirrorsAsync(CancellationToken cancellationToken)
         {
+            await EnsureAccessToken(cancellationToken);
+
             var mirrors = new List<Mirror>();
             var builds = await GetBuildsAsync(cancellationToken);
             var mirrorBuilds = builds.Where(b => b.Name.StartsWith(_config.BuildNamePrefix)).ToArray();
             _log.LogInformation($"Looking for existing mirrors in {builds.Length} builds ({mirrorBuilds.Length} of those are mirror builds)..");
-            await EnsureAccessToken(cancellationToken);
             foreach (var build in mirrorBuilds)
             {
                 if (!_buildToCloneId.HasValue &&
