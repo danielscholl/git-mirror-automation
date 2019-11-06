@@ -1,6 +1,6 @@
 # Git mirror automation
 
-Automate the mirroring of public git repositories across multiple services (such as github, gitlab & Azure DevOps).
+Automate the mirroring of **public** git repositories across multiple services (such as github, gitlab & Azure DevOps).
 
 [![GitMirrorAutomation](https://dev.azure.com/marcstanlive/Opensource/_apis/build/status/48)](https://dev.azure.com/marcstanlive/Opensource/_build/definition?definitionId=48)
 
@@ -8,38 +8,86 @@ Automate the mirroring of public git repositories across multiple services (such
 
 A long time ago I wrote about [mirroring github, gitlab and Azure DevOps repositories](https://marcstan.net/blog/2018/08/31/Mirror-github-gitlab-and-VSTS-repositories/).
 
-I still use this workflow (with slight improvements) to mirror the repositories but it still requires a set of manual steps that I decided to [automate](https://xkcd.com/1319/) everything with this azure function.
+I still use this workflow (with slight improvements) to mirror repositories but it still requires a set of manual steps. I decided to [automate](https://xkcd.com/1319/) them  with this azure function.
 
 # Manual steps this project solves
 
 While using the automation steps described in my blog post there are still manual steps left after creating a repository in github:
 
 * Sign into and create the same repository in Gitlab
+  * Set the same description as github
 * Sign into and create the same repository in Azure DevOps
-* Create a new build in Azure DevOps (by cloning existing)
+* Create a new mirror build in Azure DevOps (by cloning an existing one and updating the source repository)
 
 # How it works
 
-The azure function runs on a schedule and scans the source for any new repositories of a user (github webhooks are not available on the user level).
+The azure function runs on a schedule and uses configuration files to scan the source for any new repositories.
 
-If matched it then calls the APIs for Azure DevOps/Gitlab to create the necessary repository/build pipeline.
+If new repositories are found the function uses the APIs for Azure DevOps/Gitlab to create the necessary repository/build pipelines.
 
 Once the build pipeline exists it is triggered on every push as well as a schedule to mirror the repository.
 
 (I use Azure DevOps builds instead of github actions because Azure DevOps allows secret sharing across pipelines).
 
+# Supported features
+
+Currently these services are supported as a source to be mirrored:
+
+**Note that only public repositories are mirrored as the source does not use an access token.**
+
+* Github
+* Gitlab
+* Azure DevOps
+
+These services are supported as git mirror targets:
+
+* Gitlab
+* Azure DevOps
+
+These services can be used to execute the git mirror proces:
+
+* Azure DevOps (Build) Pipelines
+
 # Example config
 
-This example would mirror all github repos using Azure DevOps Pipelines (one per repository) each being a clone of the existing build:
+This example mirrors all github repos to Gitlab and Azure DevOps using Azure DevOps Pipelines (one per repository) to execute the git mirror commands:
 ``` json
 {
-    "source": "https://github.com/MarcStan",
-    "mirror-via": {
-        "target": "https://dev.azure.com/marcstanlive/Opensource",
-        "buildNameToClone": "Github clones\\[Github clone] GitMirrorAutomation"
+  "source": "https://github.com/MarcStan",
+  "mirror-via": {
+    "type": "https://dev.azure.com/marcstanlive/Opensource",
+    "buildToClone": "[Github clone] MyBuild",
+    "buildNamePrefix": "[Github clone] ",
+    "accessToken": {
+      "source": "https://mykeyvault.vault.azure.net",
+      "secretName": "MyDevOpsBuildPAT"
     }
+  },
+  "mirror-to": [
+    {
+      "target": "https://gitlab.com/MarcStan",
+      "accessToken": {
+        "source": "https://mykeyvault.vault.azure.net",
+        "secretName": "MyGitlabPAT"
+      }
+    },
+    {
+      "target": "https://dev.azure.com/marcstanlive/Opensource",
+      "accessToken": {
+        "source": "https://mykeyvault.vault.azure.net",
+        "secretName": "MyDevOpsGitPAT"
+      }
+    }
+  ]
 }
 ```
+
+For every github repository a DevOps build is created (clone of `[Github clone] MyBuild`). It will be named `'[Github clone] '` + repository name.
+
+All API calls to Azure DevOps will use the access token (PAT stored in a keyvault). This requires that the Azure Function MSI is granted get,list permissions on the keyvault secrets.
+
+Each mirror target will then use its own access token to create a repository of the same name (in case of Gitlab, the repository will have the same description as Github and will use the set visibility (default: private)).
+
 
 ## Setting up the build pipeline
 

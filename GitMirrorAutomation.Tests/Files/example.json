@@ -6,7 +6,7 @@
     "buildNamePrefix": "[Github clone] ",
     "accessToken": {
       "source": "https://mykeyvault.vault.azure.net",
-      "secretName": "MyDevOpsBuildSecret"
+      "secretName": "MyDevOpsBuildPAT"
     }
   },
   "mirror-to": [
@@ -14,14 +14,14 @@
       "target": "https://gitlab.com/MarcStan",
       "accessToken": {
         "source": "https://mykeyvault.vault.azure.net",
-        "secretName": "MyGitlabSecret"
+        "secretName": "MyGitlabPAT"
       }
     },
     {
       "target": "https://dev.azure.com/marcstanlive/Opensource",
       "accessToken": {
         "source": "https://mykeyvault.vault.azure.net",
-        "secretName": "MyDevOpsGitSecret"
+        "secretName": "MyDevOpsGitPAT"
       }
     }
   ]
