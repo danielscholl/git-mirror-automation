@@ -1,5 +1,6 @@
 ﻿using GitMirrorAutomation.Logic.Config;
 using GitMirrorAutomation.Logic.Helpers;
+using GitMirrorAutomation.Logic.Models;
 using GitMirrorAutomation.Logic.Sources;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
@@ -71,7 +72,7 @@ namespace GitMirrorAutomation.Logic.Mirrors
             return mirrors.ToArray();
         }
 
-        public async Task SetupMirrorAsync(string repository, CancellationToken cancellationToken)
+        public async Task SetupMirrorAsync(IRepository repository, CancellationToken cancellationToken)
         {
             if (!_buildToCloneId.HasValue)
                 throw new InvalidOperationException($"Must call {nameof(GetExistingMirrorsAsync)} first before setting up a new mirror!");
@@ -81,7 +82,7 @@ namespace GitMirrorAutomation.Logic.Mirrors
             var buildDefinition = await GetBuildDefinitionAsync(_buildToCloneId.Value, cancellationToken);
             // real inefficient but there seems to be no way to modify a JsonElement + this usually isn't executed a million times..
             var jObject = JObject.Parse(buildDefinition.GetRawText());
-            jObject["repository"]["url"] = _repositorySource.GetUrlForRepository(repository);
+            jObject["repository"]["url"] = _repositorySource.GetUrlForRepository(repository.Name);
 
             if (_repositorySource.Type != "github.com")
                 throw new NotSupportedException("Currently only github is a supported repository source!");

@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using GitMirrorAutomation.Logic.Models;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GitMirrorAutomation.Logic.Mirrors
@@ -7,6 +8,6 @@ namespace GitMirrorAutomation.Logic.Mirrors
     {
         Task<Mirror[]> GetExistingMirrorsAsync(CancellationToken cancellationToken);
 
-        Task SetupMirrorAsync(string repository, CancellationToken cancellationToken);
+        Task SetupMirrorAsync(IRepository repository, CancellationToken cancellationToken);
     }
 }

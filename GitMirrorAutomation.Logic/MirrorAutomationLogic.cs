@@ -1,8 +1,9 @@
 ﻿using GitMirrorAutomation.Logic.Mirrors;
+using GitMirrorAutomation.Logic.Models;
 using GitMirrorAutomation.Logic.Sources;
 using GitMirrorAutomation.Logic.Targets;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,13 +26,14 @@ namespace GitMirrorAutomation.Logic
             IRepositoryTarget[] targets,
             CancellationToken cancellationToken)
         {
-            var mirroredRepositories = new List<string>();
-            foreach (var mirror in await mirrorService.GetExistingMirrorsAsync(cancellationToken))
-            {
-                mirroredRepositories.Add(mirror.Repository);
-            }
+            if (!targets.Any())
+                throw new NotSupportedException("At least one target is required!");
+
+            var mirroredRepositories = (await mirrorService.GetExistingMirrorsAsync(cancellationToken))
+                .Select(x => x.Repository)
+                .ToArray();
             var repos = await scanner.GetRepositoriesAsync(cancellationToken);
-            var toMirror = repos.Where(r => !mirroredRepositories.Contains(r)).ToArray();
+            var toMirror = repos.Where(r => !mirroredRepositories.Contains(r.Name)).ToArray();
             if (toMirror.Length == 0)
             {
                 _log.LogInformation("All repositories are already mirrored!");
@@ -46,7 +48,7 @@ namespace GitMirrorAutomation.Logic
                 foreach (var target in targets)
                 {
                     var existing = await target.GetRepositoriesAsync(cancellationToken);
-                    if (existing.Contains(repo))
+                    if (existing.Any(e => e.Name == repo.Name))
                         return;
 
                     await target.CreateRepositoryAsync(repo, cancellationToken);

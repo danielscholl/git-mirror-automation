@@ -1,5 +1,6 @@
 ﻿using GitMirrorAutomation.Logic.Config;
 using GitMirrorAutomation.Logic.Helpers;
+using GitMirrorAutomation.Logic.Models;
 using System;
 using System.Linq;
 using System.Net.Http;
@@ -38,16 +39,17 @@ namespace GitMirrorAutomation.Logic.Targets
 
         public string Type => "gitlab.com";
 
-        public async Task CreateRepositoryAsync(string name, CancellationToken cancellationToken)
+        public async Task CreateRepositoryAsync(IRepository repository, CancellationToken cancellationToken)
         {
             var json = JsonSerializer.Serialize(new
             {
                 // must set path, if setting name then path will be lowerecased
                 // https://docs.gitlab.com/ee/api/projects.html#create-project
-                path = name,
-                visibility = "private"
+                path = repository.Name,
+                visibility = "private",
+                description = repository.Description
             });
-            var response = await _httpClient.PostAsync($"users/{_userName}/projects", new StringContent(json, Encoding.UTF8, "application/json"), cancellationToken);
+            var response = await _httpClient.PostAsync($"projects", new StringContent(json, Encoding.UTF8, "application/json"), cancellationToken);
             response.EnsureSuccessStatusCode();
         }
 
@@ -61,21 +63,15 @@ namespace GitMirrorAutomation.Logic.Targets
             _httpClient.DefaultRequestHeaders.Add("Private-Token", token);
         }
 
-        public async Task<string[]> GetRepositoriesAsync(CancellationToken cancellationToken)
+        public async Task<IRepository[]> GetRepositoriesAsync(CancellationToken cancellationToken)
         {
             await EnsureAccessToken(cancellationToken);
 
-            return (await _httpClient.GetPaginatedAsync<Project>($"users/{_userName}/projects", cancellationToken))
-                .Select(p => p.Name)
+            return (await _httpClient.GetPaginatedAsync<Repository>($"users/{_userName}/projects", cancellationToken))
                 .ToArray();
         }
 
         public string GetUrlForRepository(string repository)
             => $"https://gitlab.com/{_userName}/{repository}.git";
-
-        private class Project
-        {
-            public string Name { get; set; } = "";
-        }
     }
 }

@@ -1,6 +1,8 @@
 ﻿using GitMirrorAutomation.Logic;
 using GitMirrorAutomation.Logic.Mirrors;
+using GitMirrorAutomation.Logic.Models;
 using GitMirrorAutomation.Logic.Sources;
+using GitMirrorAutomation.Logic.Targets;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
@@ -17,13 +19,17 @@ namespace GitMirrorAutomation.Tests
             var automation = new MirrorAutomationLogic(new Mock<ILogger>().Object);
             var scanner = new Mock<IRepositorySource>();
             scanner.Setup(x => x.GetRepositoriesAsync(It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(new string[0]));
+                .Returns(Task.FromResult(new IRepository[0]));
             var mirror = new Mock<IMirrorService>();
             mirror.Setup(x => x.GetExistingMirrorsAsync(It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(new Mirror[0]));
-            await automation.ProcessAsync(scanner.Object, mirror.Object, CancellationToken.None);
+            var targets = new[]
+            {
+                new Mock<IRepositoryTarget>().Object
+            };
+            await automation.ProcessAsync(scanner.Object, mirror.Object, targets, CancellationToken.None);
 
-            mirror.Verify(x => x.SetupMirrorAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+            mirror.Verify(x => x.SetupMirrorAsync(It.IsAny<IRepository>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Test]
@@ -32,18 +38,22 @@ namespace GitMirrorAutomation.Tests
             var automation = new MirrorAutomationLogic(new Mock<ILogger>().Object);
             var scanner = new Mock<IRepositorySource>();
             scanner.Setup(x => x.GetRepositoriesAsync(It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(new[]
+                .Returns(Task.FromResult(new IRepository[]
                     {
-                        "Repo1",
-                        "Repo2"
+                        new Repository { Name ="Repo1" },
+                        new Repository { Name = "Repo2" }
                     }));
             var mirror = new Mock<IMirrorService>();
             mirror.Setup(x => x.GetExistingMirrorsAsync(It.IsAny<CancellationToken>()))
                 .Returns(Task.FromResult(new Mirror[0]));
-            await automation.ProcessAsync(scanner.Object, mirror.Object, CancellationToken.None);
+            var targets = new[]
+            {
+                new Mock<IRepositoryTarget>().Object
+            };
+            await automation.ProcessAsync(scanner.Object, mirror.Object, targets, CancellationToken.None);
 
-            mirror.Verify(x => x.SetupMirrorAsync("Repo1", It.IsAny<CancellationToken>()), Times.Once);
-            mirror.Verify(x => x.SetupMirrorAsync("Repo2", It.IsAny<CancellationToken>()), Times.Once);
+            mirror.Verify(x => x.SetupMirrorAsync(It.Is<IRepository>(r => r.Name == "Repo1"), It.IsAny<CancellationToken>()), Times.Once);
+            mirror.Verify(x => x.SetupMirrorAsync(It.Is<IRepository>(r => r.Name == "Repo2"), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Test]
@@ -52,10 +62,10 @@ namespace GitMirrorAutomation.Tests
             var automation = new MirrorAutomationLogic(new Mock<ILogger>().Object);
             var scanner = new Mock<IRepositorySource>();
             scanner.Setup(x => x.GetRepositoriesAsync(It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(new[]
+                .Returns(Task.FromResult(new IRepository[]
                     {
-                        "Repo1",
-                        "Repo2"
+                        new Repository { Name ="Repo1" },
+                        new Repository { Name = "Repo2" }
                     }));
             var mirror = new Mock<IMirrorService>();
             mirror.Setup(x => x.GetExistingMirrorsAsync(It.IsAny<CancellationToken>()))
@@ -70,9 +80,13 @@ namespace GitMirrorAutomation.Tests
                         Repository = "Repo2"
                     }
                 }));
-            await automation.ProcessAsync(scanner.Object, mirror.Object, CancellationToken.None);
+            var targets = new[]
+            {
+                new Mock<IRepositoryTarget>().Object
+            };
+            await automation.ProcessAsync(scanner.Object, mirror.Object, targets, CancellationToken.None);
 
-            mirror.Verify(x => x.SetupMirrorAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+            mirror.Verify(x => x.SetupMirrorAsync(It.IsAny<IRepository>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Test]
@@ -81,10 +95,10 @@ namespace GitMirrorAutomation.Tests
             var automation = new MirrorAutomationLogic(new Mock<ILogger>().Object);
             var scanner = new Mock<IRepositorySource>();
             scanner.Setup(x => x.GetRepositoriesAsync(It.IsAny<CancellationToken>()))
-                .Returns(Task.FromResult(new[]
+                .Returns(Task.FromResult(new IRepository[]
                     {
-                        "Repo1",
-                        "Repo2"
+                        new Repository { Name ="Repo1" },
+                        new Repository { Name = "Repo2" }
                     }));
             var mirror = new Mock<IMirrorService>();
             mirror.Setup(x => x.GetExistingMirrorsAsync(It.IsAny<CancellationToken>()))
@@ -95,10 +109,14 @@ namespace GitMirrorAutomation.Tests
                         Repository = "Repo1"
                     }
                 }));
-            await automation.ProcessAsync(scanner.Object, mirror.Object, CancellationToken.None);
+            var targets = new[]
+            {
+                new Mock<IRepositoryTarget>().Object
+            };
+            await automation.ProcessAsync(scanner.Object, mirror.Object, targets, CancellationToken.None);
 
-            mirror.Verify(x => x.SetupMirrorAsync("Repo2", It.IsAny<CancellationToken>()), Times.Once);
-            mirror.Verify(x => x.SetupMirrorAsync(It.Is<string>(x => x != "Repo2"), It.IsAny<CancellationToken>()), Times.Never);
+            mirror.Verify(x => x.SetupMirrorAsync(It.Is<IRepository>(r => r.Name == "Repo2"), It.IsAny<CancellationToken>()), Times.Once);
+            mirror.Verify(x => x.SetupMirrorAsync(It.Is<IRepository>(x => x.Name != "Repo2"), It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 }

@@ -2,6 +2,7 @@
 using FluentAssertions;
 using GitMirrorAutomation.Logic.Sources;
 using NUnit.Framework;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,7 +27,7 @@ namespace GitMirrorAutomation.Tests
             var githubUrl = $"https://github.com/{_userUnderTest}";
             var scanner = new GithubRepositorySource(githubUrl);
             var repositories = await scanner.GetRepositoriesAsync(CancellationToken.None);
-            repositories.Should().Contain(_repoUnderTest);
+            repositories.SingleOrDefault(r => r.Name == _repoUnderTest).Should().NotBeNull();
             repositories.Should().HaveCountGreaterOrEqualTo(20);
         }
     }

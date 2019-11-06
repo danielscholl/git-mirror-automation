@@ -1,6 +1,6 @@
 ﻿using GitMirrorAutomation.Logic.Config;
 using GitMirrorAutomation.Logic.Helpers;
-using System.Linq;
+using GitMirrorAutomation.Logic.Models;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -18,30 +18,23 @@ namespace GitMirrorAutomation.Logic.Targets
 
         public string Type => "dev.azure.com";
 
-        public async Task CreateRepositoryAsync(string name, CancellationToken cancellationToken)
+        public async Task CreateRepositoryAsync(IRepository repository, CancellationToken cancellationToken)
         {
             await EnsureAccessToken(cancellationToken);
             var json = JsonSerializer.Serialize(new Repository
             {
-                Name = name
+                Name = repository.Name
             });
             var response = await HttpClient.PostAsync($"git/repositories?api-version=5.1", new StringContent(json, Encoding.UTF8, "application/json"), cancellationToken);
             response.EnsureSuccessStatusCode();
         }
 
-        public async Task<string[]> GetRepositoriesAsync(CancellationToken cancellationToken)
+        public async Task<IRepository[]> GetRepositoriesAsync(CancellationToken cancellationToken)
         {
-            return (await GetCollectionAsync<Repository>("git/repositories?api-version=5.1", cancellationToken))
-                .Select(r => r.Name)
-                .ToArray();
+            return await GetCollectionAsync<Repository>("git/repositories?api-version=5.1", cancellationToken);
         }
 
         public string GetUrlForRepository(string repository)
             => $"https://dev.azure.com/{DevOpsAccount}/{DevOpsProject}/_git/{repository}";
-
-        private class Repository
-        {
-            public string Name { get; set; } = "";
-        }
     }
 }

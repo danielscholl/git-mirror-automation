@@ -1,6 +1,6 @@
 ﻿using GitMirrorAutomation.Logic.Helpers;
+using GitMirrorAutomation.Logic.Models;
 using System;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
@@ -36,20 +36,12 @@ namespace GitMirrorAutomation.Logic.Sources
 
         public string Type => "github.com";
 
-        public async Task<string[]> GetRepositoriesAsync(CancellationToken cancellationToken)
+        public async Task<IRepository[]> GetRepositoriesAsync(CancellationToken cancellationToken)
         {
-            return (await _httpClient.GetPaginatedAsync<Repo>($"users/{_userName}/repos", cancellationToken))
-                .Select(r => r.Name)
-                .ToArray();
+            return await _httpClient.GetPaginatedAsync<Repository>($"users/{_userName}/repos", cancellationToken);
         }
 
         public string GetUrlForRepository(string repository)
             => $"https://github.com/{_userName}/{repository}.git";
-
-
-        private class Repo
-        {
-            public string Name { get; set; } = "";
-        }
     }
 }
