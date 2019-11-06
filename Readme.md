@@ -127,7 +127,7 @@ $devOpsProject = "<project name in your devops account>"
 $gitlabUser = "<your gitlab username>"
 
 Mirror-To "https://$(DevOpsPAT)@dev.azure.com/$devOpsAccount/$devOpsProject/_git/$repoName"
-Mirror-To ("https://$(GitlabPAT)@gitlab.com//$repoName")
+Mirror-To ("https://$(GitlabPAT)@gitlab.com/$gitlabUser/$repoName")
 ```
 Configure the variables at the end of the script (and adjust the targets if you have other git repos where you want to push to). Note that each url requires the PAT in the url as I haven't implemented header authentication yet.
 
