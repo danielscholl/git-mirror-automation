@@ -46,10 +46,10 @@ namespace GitMirrorAutomation.Logic.Targets
                 // must set path, if setting name then path will be lowerecased
                 // https://docs.gitlab.com/ee/api/projects.html#create-project
                 path = repository.Name,
-                visibility = "private",
+                visibility = "public",
                 description = repository.Description
             });
-            var response = await _httpClient.PostAsync($"projects", new StringContent(json, Encoding.UTF8, "application/json"), cancellationToken);
+            var response = await _httpClient.PostAsync("projects", new StringContent(json, Encoding.UTF8, "application/json"), cancellationToken);
             response.EnsureSuccessStatusCode();
         }
 

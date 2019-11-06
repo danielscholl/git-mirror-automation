@@ -25,7 +25,7 @@ namespace GitMirrorAutomation.Logic.Targets
             {
                 Name = repository.Name
             });
-            var response = await HttpClient.PostAsync($"git/repositories?api-version=5.1", new StringContent(json, Encoding.UTF8, "application/json"), cancellationToken);
+            var response = await HttpClient.PostAsync("git/repositories?api-version=5.1", new StringContent(json, Encoding.UTF8, "application/json"), cancellationToken);
             response.EnsureSuccessStatusCode();
         }
 

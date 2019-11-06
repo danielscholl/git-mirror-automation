@@ -88,9 +88,9 @@ namespace GitMirrorAutomation.Logic.Mirrors
                 throw new NotSupportedException("Currently only github is a supported repository source!");
 
             // id is needed and seems to be dependent on type of source
-            jObject["repository"]["id"] = "Github/" + repository;
-            jObject["repository"]["name"] = "Github/" + repository;
-            jObject["name"] = _config.BuildNamePrefix + repository;
+            jObject["repository"]["id"] = "Github/" + repository.Name;
+            jObject["repository"]["name"] = "Github/" + repository.Name;
+            jObject["name"] = _config.BuildNamePrefix + repository.Name;
 
             var json = jObject.ToString();
             var response = await HttpClient.PostAsync("build/definitions?api-version=5.1", new StringContent(json, Encoding.UTF8, "application/json"));
