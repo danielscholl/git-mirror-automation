@@ -14,7 +14,6 @@ namespace GitMirrorAutomation.Logic.Sources
         private static readonly Regex _userRegex = new Regex(@"https:\/\/github\.com\/([^/?&# ]+)");
 
         private readonly HttpClient _httpClient;
-        private readonly string _userName;
 
         public GithubRepositorySource(string userUrl)
         {
@@ -22,7 +21,7 @@ namespace GitMirrorAutomation.Logic.Sources
             if (!match.Success)
                 throw new ArgumentException("Expected a valid github username url but got: " + userUrl);
 
-            _userName = match.Groups[1].Value;
+            UserName = match.Groups[1].Value;
 
             _httpClient = new HttpClient
             {
@@ -33,15 +32,16 @@ namespace GitMirrorAutomation.Logic.Sources
             // https://developer.github.com/v3/#user-agent-required
             _httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("GitMirrorAutomation", "v1"));
         }
+        public string UserName { get; }
 
         public string Type => "github.com";
 
         public async Task<IRepository[]> GetRepositoriesAsync(CancellationToken cancellationToken)
         {
-            return await _httpClient.GetPaginatedAsync<Repository>($"users/{_userName}/repos", cancellationToken);
+            return await _httpClient.GetPaginatedAsync<Repository>($"users/{UserName}/repos", cancellationToken);
         }
 
-        public string GetUrlForRepository(string repository)
-            => $"https://github.com/{_userName}/{repository}.git";
+        public string GetRepositoryUrl(string repository)
+            => $"https://github.com/{UserName}/{repository}.git";
     }
 }

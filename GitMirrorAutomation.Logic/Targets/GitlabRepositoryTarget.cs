@@ -71,7 +71,10 @@ namespace GitMirrorAutomation.Logic.Targets
                 .ToArray();
         }
 
-        public string GetUrlForRepository(string repository)
+        public string GetRepositoryUrl(string repository)
             => $"https://gitlab.com/{_userName}/{repository}.git";
+
+        public string GetRepositoryId(string repository)
+            => throw new NotImplementedException();
     }
 }

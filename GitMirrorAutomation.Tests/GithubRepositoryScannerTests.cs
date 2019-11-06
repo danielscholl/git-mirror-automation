@@ -18,7 +18,7 @@ namespace GitMirrorAutomation.Tests
         {
             var githubUrl = $"https://github.com/{_userUnderTest}";
             var scanner = new GithubRepositorySource(githubUrl);
-            scanner.GetUrlForRepository(_repoUnderTest).Should().Be($"{githubUrl}/{_repoUnderTest}.git");
+            scanner.GetRepositoryUrl(_repoUnderTest).Should().Be($"{githubUrl}/{_repoUnderTest}.git");
         }
 
         [Test]

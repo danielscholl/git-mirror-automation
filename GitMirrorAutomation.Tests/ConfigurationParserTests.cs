@@ -6,7 +6,7 @@ using NUnit.Framework;
 
 namespace GitMirrorAutomation.Tests
 {
-    public class ConfigurationProcessorTests
+    public class ConfigurationParserTests
     {
         [Test]
         public void GithubUserSourceSupport()

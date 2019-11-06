@@ -49,7 +49,7 @@ namespace GitMirrorAutomation.Logic.Mirrors
                 }
 
                 var repoName = build.Name.Substring(_config.BuildNamePrefix.Length);
-                var expectedRepoUrl = _repositorySource.GetUrlForRepository(repoName);
+                var expectedRepoUrl = _repositorySource.GetRepositoryUrl(repoName);
 
                 // repo isn't loaded in overall list, so get definition
                 // to ensure build is using correct source repo
@@ -82,18 +82,52 @@ namespace GitMirrorAutomation.Logic.Mirrors
             var buildDefinition = await GetBuildDefinitionAsync(_buildToCloneId.Value, cancellationToken);
             // real inefficient but there seems to be no way to modify a JsonElement + this usually isn't executed a million times..
             var jObject = JObject.Parse(buildDefinition.GetRawText());
-            jObject["repository"]["url"] = _repositorySource.GetUrlForRepository(repository.Name);
 
-            if (_repositorySource.Type != "github.com")
-                throw new NotSupportedException("Currently only github is a supported repository source!");
+            // repository settings depend on the on the type of source
+            switch (_repositorySource.Type)
+            {
+                case "github.com":
+                    var gh = (GithubRepositorySource)_repositorySource;
+                    var githubWebUrl = _repositorySource.GetRepositoryUrl(repository.Name);
+                    if (githubWebUrl.EndsWith(".git", StringComparison.OrdinalIgnoreCase))
+                        githubWebUrl = githubWebUrl.Substring(0, githubWebUrl.Length - ".git".Length);
 
-            // id is needed and seems to be dependent on type of source
-            jObject["repository"]["id"] = "Github/" + repository.Name;
-            jObject["repository"]["name"] = "Github/" + repository.Name;
-            jObject["name"] = _config.BuildNamePrefix + repository.Name;
+                    // manually updated a build to new repository source and compared differences
+                    var apiUrl = githubWebUrl.Replace("https://github.com", "https://api.github.com/repos");
+                    var userNameAndRepo = $"{gh.UserName}/{repository.Name}";
+                    jObject["repository"]["id"] = userNameAndRepo;
+                    jObject["repository"]["name"] = userNameAndRepo;
+                    jObject["repository"]["properties"]["apiUrl"] = apiUrl;
+                    jObject["repository"]["properties"]["branchesUrl"] = apiUrl + "/branches";
+                    jObject["repository"]["properties"]["cloneUrl"] = githubWebUrl + ".git";
+                    jObject["repository"]["properties"]["fullName"] = userNameAndRepo;
+                    jObject["repository"]["properties"]["manageUrl"] = githubWebUrl;
+                    jObject["repository"]["properties"]["refsUrl"] = apiUrl + "/git/refs";
+                    jObject["repository"]["properties"]["safeRepository"] = userNameAndRepo;
+                    jObject["repository"]["properties"]["shortName"] = repository.Name;
+                    jObject["name"] = _config.BuildNamePrefix + repository.Name;
+
+                    jObject["repository"]["url"] = githubWebUrl;
+                    break;
+                default:
+                    throw new NotSupportedException($"Currently {_repositorySource.Type} is not supported as a repository source!");
+            }
 
             var json = jObject.ToString();
-            var response = await HttpClient.PostAsync("build/definitions?api-version=5.1", new StringContent(json, Encoding.UTF8, "application/json"));
+            var response = await HttpClient.PostAsync("build/definitions?api-version=5.1", new StringContent(json, Encoding.UTF8, "application/json"), cancellationToken);
+            response.EnsureSuccessStatusCode();
+            var createdBuildJson = await response.Content.ReadAsStringAsync();
+            var build = JsonSerializer.Deserialize<Build>(createdBuildJson, JsonSettings.Default);
+
+            _log.LogInformation($"Queue initial build to mirror {repository.Name}");
+            json = JsonSerializer.Serialize(new
+            {
+                definition = new
+                {
+                    id = build.Id
+                }
+            }, JsonSettings.Default);
+            response = await HttpClient.PostAsync("build/builds?api-version=5.1", new StringContent(json, Encoding.UTF8, "application/json"), cancellationToken);
             response.EnsureSuccessStatusCode();
         }
 

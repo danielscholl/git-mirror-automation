@@ -34,7 +34,10 @@ namespace GitMirrorAutomation.Logic.Targets
             return await GetCollectionAsync<Repository>("git/repositories?api-version=5.1", cancellationToken);
         }
 
-        public string GetUrlForRepository(string repository)
+        public string GetRepositoryId(string repository)
+            => repository;
+
+        public string GetRepositoryUrl(string repository)
             => $"https://dev.azure.com/{DevOpsAccount}/{DevOpsProject}/_git/{repository}";
     }
 }
