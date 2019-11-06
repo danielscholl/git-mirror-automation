@@ -18,7 +18,7 @@ namespace GitMirrorAutomation.Tests
         public void Getting_repository_url_from_repo_name_should_return_with_git_suffix()
         {
             var githubUrl = $"https://github.com/{_userUnderTest}";
-            var scanner = new GithubRepositorySource(_userUnderTest, "users/{0}/repos");
+            var scanner = new GithubRepositorySource(githubUrl);
             scanner.GetRepositoryUrl(new Repository
             {
                 Name = _repoUnderTest
@@ -29,31 +29,21 @@ namespace GitMirrorAutomation.Tests
         public void Getting_repository_url_from_github_repo_name_should_return_with_git_suffix()
         {
             var githubUrl = $"https://github.com/{_userUnderTest}";
-            var scanner = new GithubRepositorySource(_userUnderTest, "users/{0}/repos");
+            var scanner = new GithubRepositorySource(githubUrl);
             scanner.GetRepositoryUrl(new GithubRepository
             {
                 Name = _repoUnderTest,
-                GitUrl = "prefferredValue"
-            }).Should().Be("prefferredValue");
+                GitUrl = githubUrl
+            }).Should().Be(githubUrl);
         }
 
         [Test]
         public async Task Getting_repositories_from_user_should_return_public_repositories()
         {
             var githubUrl = $"https://github.com/{_userUnderTest}";
-            var scanner = new GithubRepositorySource(_userUnderTest, "users/{0}/repos");
+            var scanner = new GithubRepositorySource(githubUrl);
             var repositories = await scanner.GetRepositoriesAsync(CancellationToken.None);
             repositories.SingleOrDefault(r => r.Name == _repoUnderTest).Should().NotBeNull();
-            repositories.Should().HaveCountGreaterOrEqualTo(20);
-        }
-
-        [Test]
-        public async Task Getting_starred_repositories_from_user_should_return_starred_repositories()
-        {
-            var githubUrl = $"https://github.com/{_userUnderTest}";
-            var scanner = new GithubRepositorySource(_userUnderTest, "users/{0}/starred");
-            var repositories = await scanner.GetRepositoriesAsync(CancellationToken.None);
-            repositories.SingleOrDefault(r => r.Name == "wpf").Should().NotBeNull();
             repositories.Should().HaveCountGreaterOrEqualTo(20);
         }
     }

@@ -35,9 +35,7 @@ Currently these services are supported as a source to be mirrored:
 
 **Note that only public repositories are mirrored as the source does not use an access token.**
 
-* Github
-  * User (https://github.com/\<user name>)
-  * User starred projects (https://github.com/\<user name>/starred)
+* Github User (https://github.com/\<user name>)
 * Gitlab User (https://gitlab.com/\<user name>)
 * Azure DevOps Project (https://dev.azure.com/\<account name>/\<project name>)
 
@@ -130,7 +128,6 @@ $gitlabUser = "<your gitlab username>"
 
 Mirror-To "https://$(DevOpsPAT)@dev.azure.com/$devOpsAccount/$devOpsProject/_git/$repoName"
 Mirror-To ("https://$(GitlabPAT)@gitlab.com//$repoName")
-
 ```
 Configure the variables at the end of the script (and adjust the targets if you have other git repos where you want to push to). Note that each url requires the PAT in the url as I haven't implemented header authentication yet.
 

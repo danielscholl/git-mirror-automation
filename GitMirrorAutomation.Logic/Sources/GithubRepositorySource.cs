@@ -3,6 +3,7 @@ using GitMirrorAutomation.Logic.Models;
 using System;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,13 +11,17 @@ namespace GitMirrorAutomation.Logic.Sources
 {
     public class GithubRepositorySource : IRepositorySource
     {
-        private readonly HttpClient _httpClient;
-        private readonly string _paginationTemplate;
+        private readonly Regex _userRegex = new Regex(@"https:\/\/github\.com\/([^/?&# ]+)");
 
-        public GithubRepositorySource(string userName, string paginationTemplate)
+        private readonly HttpClient _httpClient;
+
+        public GithubRepositorySource(string userUrl)
         {
-            UserName = userName;
-            _paginationTemplate = paginationTemplate;
+            var match = _userRegex.Match(userUrl);
+            if (!match.Success)
+                throw new ArgumentException("Expected a valid github username url but got: " + userUrl);
+
+            UserName = match.Groups[1].Value;
 
             _httpClient = new HttpClient
             {
@@ -34,7 +39,7 @@ namespace GitMirrorAutomation.Logic.Sources
 
         public async Task<IRepository[]> GetRepositoriesAsync(CancellationToken cancellationToken)
         {
-            return await _httpClient.GetPaginatedAsync<GithubRepository>(string.Format(_paginationTemplate, UserName), cancellationToken);
+            return await _httpClient.GetPaginatedAsync<GithubRepository>($"users/{UserName}/repos", cancellationToken);
         }
 
         public string GetRepositoryUrl(IRepository repository)
