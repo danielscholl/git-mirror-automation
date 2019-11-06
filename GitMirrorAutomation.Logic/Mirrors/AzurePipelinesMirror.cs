@@ -59,7 +59,10 @@ namespace GitMirrorAutomation.Logic.Mirrors
                 // to ensure build is using correct source repo
                 var buildDefinition = await GetBuildDefinitionAsync(build.Id, cancellationToken);
                 var buildWithRepo = JsonSerializer.Deserialize<Build>(buildDefinition.GetRawText(), JsonSettings.Default);
-                var foundUrl = buildWithRepo.Repository.Url;
+                // normalize because github/gitlab allow both urls ending in .git and without
+                // and Azure DevOps builds can also use both types of urls as source for builds
+                var foundUrl = Normalize(buildWithRepo.Repository.Url);
+                expectedRepoUrl = Normalize(expectedRepoUrl);
                 if (foundUrl != expectedRepoUrl)
                     throw new NotSupportedException($"Expected build '{build.Name}' to use repository '{expectedRepoUrl}' but it uses '{buildWithRepo.Repository.Url}'");
 
@@ -74,6 +77,13 @@ namespace GitMirrorAutomation.Logic.Mirrors
                 throw new InvalidOperationException($"Could not find the build to clone '{_config.BuildToClone}' while scanning builds in Azure DevOps");
 
             return mirrors.ToArray();
+        }
+
+        private string Normalize(string url)
+        {
+            if (url.EndsWith(".git", StringComparison.OrdinalIgnoreCase))
+                return url.Substring(0, url.Length - ".git".Length);
+            return url;
         }
 
         public async Task SetupMirrorAsync(IRepository repository, CancellationToken cancellationToken)
