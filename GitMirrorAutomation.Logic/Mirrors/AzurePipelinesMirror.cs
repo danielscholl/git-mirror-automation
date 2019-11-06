@@ -97,6 +97,7 @@ namespace GitMirrorAutomation.Logic.Mirrors
                     var userNameAndRepo = $"{gh.UserName}/{repository.Name}";
                     jObject["repository"]["id"] = userNameAndRepo;
                     jObject["repository"]["name"] = userNameAndRepo;
+                    jObject["repository"]["url"] = githubWebUrl + ".git";
                     jObject["repository"]["properties"]["apiUrl"] = apiUrl;
                     jObject["repository"]["properties"]["branchesUrl"] = apiUrl + "/branches";
                     jObject["repository"]["properties"]["cloneUrl"] = githubWebUrl + ".git";
