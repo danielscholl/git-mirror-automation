@@ -5,6 +5,7 @@ using GitMirrorAutomation.Logic.Targets;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace GitMirrorAutomation.Logic
 {
@@ -18,24 +19,39 @@ namespace GitMirrorAutomation.Logic
             _log = log;
         }
 
-        public IRepositorySource GetRepositoryScanner(string source)
+        public IRepositorySource GetRepositorySource(string source)
             => new Uri(source).Host.ToLowerInvariant() switch
 
             {
-                "github.com" => new GithubRepositorySource(source),
+                "github.com" => ParseGithubSource(source),
                 _ => throw new NotSupportedException($"Unsupported source {source}")
             };
 
-        public IMirrorService GetMirrorService(MirrorViaConfig mirrorConfig, IRepositorySource scanner)
+        public IMirrorService GetMirrorService(MirrorViaConfig mirrorConfig, IRepositorySource source)
             => new Uri(mirrorConfig.Type).Host.ToLowerInvariant() switch
             {
-                "dev.azure.com" => new AzurePipelinesMirror(mirrorConfig, scanner, _log),
+                "dev.azure.com" => new AzurePipelinesMirror(mirrorConfig, source, _log),
                 _ => throw new NotSupportedException($"Unsupported mirror {mirrorConfig.Type}")
             };
 
         public IRepositoryTarget[] GetRepositoryTargets(MirrorToConfig[] mirrorToConfig)
         {
             return mirrorToConfig.Select(GetRepositoryTarget).ToArray();
+        }
+
+        private IRepositorySource ParseGithubSource(string source)
+        {
+            var starRegex = new Regex(@"https:\/\/github\.com\/([^/?&# ]+)/starred");
+            var match = starRegex.Match(source);
+            if (match.Success)
+                return new GithubRepositorySource(match.Groups[1].Value, "users/{0}/starred");
+
+            var userRegex = new Regex(@"https:\/\/github\.com\/([^/?&# ]+)");
+            match = userRegex.Match(source);
+            if (match.Success)
+                return new GithubRepositorySource(match.Groups[1].Value, "users/{0}/repos");
+
+            throw new ArgumentException("Expected a valid github username url but got: " + source);
         }
 
         private IRepositoryTarget GetRepositoryTarget(MirrorToConfig mirrorToConfig)

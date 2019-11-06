@@ -36,8 +36,10 @@ Currently these services are supported as a source to be mirrored:
 **Note that only public repositories are mirrored as the source does not use an access token.**
 
 * Github
-* Gitlab
-* Azure DevOps
+  * User (https://github.com/\<user name>)
+  * User starred projects (https://github.com/\<user name>/starred)
+* Gitlab User (https://gitlab.com/\<user name>)
+* Azure DevOps Project (https://dev.azure.com/\<account name>/\<project name>)
 
 These services are supported as git mirror targets:
 

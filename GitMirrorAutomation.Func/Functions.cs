@@ -30,7 +30,7 @@ namespace GitMirrorAutomation.Func
             foreach (var cfg in configurations)
             {
                 var automation = new MirrorAutomationLogic(log);
-                var scanner = configParser.GetRepositoryScanner(cfg.Source);
+                var scanner = configParser.GetRepositorySource(cfg.Source);
                 var mirrorService = configParser.GetMirrorService(cfg.MirrorViaConfig, scanner);
                 var targets = configParser.GetRepositoryTargets(cfg.MirrorToConfig);
                 log.LogInformation($"Processing source {cfg.Source}");

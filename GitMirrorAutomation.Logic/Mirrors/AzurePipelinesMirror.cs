@@ -24,12 +24,12 @@ namespace GitMirrorAutomation.Logic.Mirrors
 
         public AzurePipelinesMirror(
             MirrorViaConfig config,
-            IRepositorySource repositoryScanner,
+            IRepositorySource repositorySource,
             ILogger log)
             : base(config.Type, config.AccessToken)
         {
             _config = config;
-            _repositorySource = repositoryScanner;
+            _repositorySource = repositorySource;
             _log = log;
         }
 
@@ -87,7 +87,7 @@ namespace GitMirrorAutomation.Logic.Mirrors
             switch (_repositorySource.Type)
             {
                 case "github.com":
-                    var gh = (GithubRepositorySource)_repositorySource;
+                    var gh = (GithubUserRepositorySource)_repositorySource;
                     var githubWebUrl = _repositorySource.GetRepositoryUrl(repository.Name);
                     if (githubWebUrl.EndsWith(".git", StringComparison.OrdinalIgnoreCase))
                         githubWebUrl = githubWebUrl.Substring(0, githubWebUrl.Length - ".git".Length);
