@@ -7,23 +7,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace GitMirrorAutomation.Logic.Mirrors
 {
-    public class AzurePipelinesMirror : IMirrorService
+    public class AzurePipelinesMirror : AzureDevOpsBase, IMirrorService
     {
-        private static readonly Regex _devOpsRegex = new Regex(@"https:\/\/dev\.azure\.com\/([^/?&# ]+)/([^/?&#]+)");
-
-        private readonly HttpClient _httpClient;
         private readonly MirrorViaConfig _config;
-        private readonly string _devOpsAccount;
-        private readonly string _devOpsProject;
         private int? _buildToCloneId;
         private readonly IRepositorySource _repositorySource;
         private readonly ILogger _log;
@@ -32,22 +25,10 @@ namespace GitMirrorAutomation.Logic.Mirrors
             MirrorViaConfig config,
             IRepositorySource repositoryScanner,
             ILogger log)
+            : base(config.Type, config.AccessToken)
         {
             _config = config;
             _repositorySource = repositoryScanner;
-
-            var match = _devOpsRegex.Match(config.Type);
-            if (!match.Success)
-                throw new ArgumentException("Expected a valid devops account url but got: " + config.Type);
-
-            _devOpsAccount = match.Groups[1].Value;
-            _devOpsProject = match.Groups[2].Value;
-
-            _httpClient = new HttpClient
-            {
-                BaseAddress = new Uri($"https://dev.azure.com/{_devOpsAccount}/{_devOpsProject}/_apis/")
-            };
-            _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _log = log;
         }
 
@@ -102,7 +83,7 @@ namespace GitMirrorAutomation.Logic.Mirrors
             var jObject = JObject.Parse(buildDefinition.GetRawText());
             jObject["repository"]["url"] = _repositorySource.GetUrlForRepository(repository);
 
-            if (_repositorySource.Type != "Github")
+            if (_repositorySource.Type != "github.com")
                 throw new NotSupportedException("Currently only github is a supported repository source!");
 
             // id is needed and seems to be dependent on type of source
@@ -111,55 +92,19 @@ namespace GitMirrorAutomation.Logic.Mirrors
             jObject["name"] = _config.BuildNamePrefix + repository;
 
             var json = jObject.ToString();
-            var response = await _httpClient.PostAsync("build/definitions?api-version=5.1", new StringContent(json, Encoding.UTF8, "application/json"));
+            var response = await HttpClient.PostAsync("build/definitions?api-version=5.1", new StringContent(json, Encoding.UTF8, "application/json"));
             response.EnsureSuccessStatusCode();
-        }
-
-        private async Task EnsureAccessToken(CancellationToken cancellationToken)
-        {
-            if (_httpClient.DefaultRequestHeaders.Authorization != null)
-                return;
-
-            var token = await new AccessTokenHelper().GetAsync(_config.AccessToken, cancellationToken);
-            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(Encoding.ASCII.GetBytes(string.Format("{0}:{1}", "", token))));
         }
 
         private async Task<JsonElement> GetBuildDefinitionAsync(int id, CancellationToken cancellationToken)
         {
-            var response = await _httpClient.GetAsync($"build/definitions/{id}?api-version=5.1");
+            var response = await HttpClient.GetAsync($"build/definitions/{id}?api-version=5.1");
             response.EnsureSuccessStatusCode();
             return await JsonSerializer.DeserializeAsync<JsonElement>(await response.Content.ReadAsStreamAsync(), JsonSettings.Default, cancellationToken);
         }
 
         private Task<Build[]> GetBuildsAsync(CancellationToken cancellationToken)
             => GetCollectionAsync<Build>("build/definitions?api-version=5.1", cancellationToken);
-
-        private async Task<T[]> GetCollectionAsync<T>(string url, CancellationToken cancellationToken)
-        {
-            string? continuationToken = null;
-            var nextUrl = url;
-            var items = new List<T>();
-            do
-            {
-                nextUrl = url +
-                    (continuationToken != null ? $"&continuationToken={continuationToken}" : "");
-                var response = await _httpClient.GetAsync(nextUrl, cancellationToken);
-                response.EnsureSuccessStatusCode();
-                var data = await JsonSerializer.DeserializeAsync<Collection<T>>(await response.Content.ReadAsStreamAsync(), JsonSettings.Default);
-                items.AddRange(data.Value);
-
-                if (response.Headers.TryGetValues("x-ms-continuationtoken", out var values))
-                    continuationToken = values.FirstOrDefault();
-
-            } while (continuationToken != null);
-
-            return items.ToArray();
-        }
-
-        private class Collection<T>
-        {
-            public T[] Value { get; set; } = new T[0];
-        }
 
         private class Build
         {

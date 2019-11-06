@@ -1,5 +1,6 @@
 ﻿using GitMirrorAutomation.Logic.Mirrors;
 using GitMirrorAutomation.Logic.Sources;
+using GitMirrorAutomation.Logic.Targets;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,6 +22,7 @@ namespace GitMirrorAutomation.Logic
         public async Task ProcessAsync(
             IRepositorySource scanner,
             IMirrorService mirrorService,
+            IRepositoryTarget[] targets,
             CancellationToken cancellationToken)
         {
             var mirroredRepositories = new List<string>();
@@ -39,6 +41,16 @@ namespace GitMirrorAutomation.Logic
             foreach (var repo in toMirror)
             {
                 _log.LogInformation($"Creating mirror for repository {repo}");
+                // create mirror last as it is the marker whether a repo mirror already exists
+                // creating repositories is also idempotent
+                foreach (var target in targets)
+                {
+                    var existing = await target.GetRepositoriesAsync(cancellationToken);
+                    if (existing.Contains(repo))
+                        return;
+
+                    await target.CreateRepositoryAsync(repo, cancellationToken);
+                }
                 await mirrorService.SetupMirrorAsync(repo, cancellationToken);
                 _log.LogInformation($"Created mirror for repository {repo}");
             }

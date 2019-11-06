@@ -1,16 +1,18 @@
 ﻿using GitMirrorAutomation.Logic.Config;
 using GitMirrorAutomation.Logic.Mirrors;
 using GitMirrorAutomation.Logic.Sources;
+using GitMirrorAutomation.Logic.Targets;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Linq;
 
 namespace GitMirrorAutomation.Logic
 {
-    public class ConfigurationProcessor
+    public class ConfigurationParser
     {
         private readonly ILogger _log;
 
-        public ConfigurationProcessor(
+        public ConfigurationParser(
             ILogger log)
         {
             _log = log;
@@ -29,6 +31,19 @@ namespace GitMirrorAutomation.Logic
             {
                 "dev.azure.com" => new AzurePipelinesMirror(mirrorConfig, scanner, _log),
                 _ => throw new NotSupportedException($"Unsupported mirror {mirrorConfig.Type}")
+            };
+
+        public IRepositoryTarget[] GetRepositoryTargets(MirrorToConfig[] mirrorToConfig)
+        {
+            return mirrorToConfig.Select(GetRepositoryTarget).ToArray();
+        }
+
+        private IRepositoryTarget GetRepositoryTarget(MirrorToConfig mirrorToConfig)
+            => new Uri(mirrorToConfig.Target).Host.ToLowerInvariant() switch
+            {
+                "gitlab.com" => new GitlabRepositoryTarget(mirrorToConfig),
+                "dev.azure.com" => new AzureDevOpsRepositoryTarget(mirrorToConfig),
+                _ => throw new NotSupportedException($"Unsupported target {mirrorToConfig.Target}")
             };
     }
 }

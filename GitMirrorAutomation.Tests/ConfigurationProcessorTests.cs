@@ -11,7 +11,7 @@ namespace GitMirrorAutomation.Tests
         [Test]
         public void GithubUserSourceSupport()
         {
-            var processor = new ConfigurationProcessor(new Mock<ILogger>().Object);
+            var processor = new ConfigurationParser(new Mock<ILogger>().Object);
             var scanner = processor.GetRepositoryScanner("https://github.com/MarcStan");
             scanner.Should().NotBeNull();
         }
@@ -19,7 +19,7 @@ namespace GitMirrorAutomation.Tests
         [Test]
         public void AzurePipelinesMirrorSupport()
         {
-            var processor = new ConfigurationProcessor(new Mock<ILogger>().Object);
+            var processor = new ConfigurationParser(new Mock<ILogger>().Object);
             var scanner = processor.GetRepositoryScanner("https://github.com/MarcStan");
             var mirror = processor.GetMirrorService(new Logic.Config.MirrorViaConfig
             {

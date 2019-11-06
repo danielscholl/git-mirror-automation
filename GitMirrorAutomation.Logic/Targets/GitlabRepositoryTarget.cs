@@ -3,6 +3,8 @@ using GitMirrorAutomation.Logic.Helpers;
 using System;
 using System.Linq;
 using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,11 +36,19 @@ namespace GitMirrorAutomation.Logic.Targets
             };
         }
 
-        public string Type => "Gitlab";
+        public string Type => "gitlab.com";
 
-        public Task CreateRepositoryAsync(string name, CancellationToken cancellationToken)
+        public async Task CreateRepositoryAsync(string name, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var json = JsonSerializer.Serialize(new
+            {
+                // must set path, if setting name then path will be lowerecased
+                // https://docs.gitlab.com/ee/api/projects.html#create-project
+                path = name,
+                visibility = "private"
+            });
+            var response = await _httpClient.PostAsync($"users/{_userName}/projects", new StringContent(json, Encoding.UTF8, "application/json"), cancellationToken);
+            response.EnsureSuccessStatusCode();
         }
 
         private async Task EnsureAccessToken(CancellationToken cancellationToken)
@@ -55,7 +65,7 @@ namespace GitMirrorAutomation.Logic.Targets
         {
             await EnsureAccessToken(cancellationToken);
 
-            return (await _httpClient.GetPaginatedAsync<Project>($"/users/{_userName}/projects", cancellationToken))
+            return (await _httpClient.GetPaginatedAsync<Project>($"users/{_userName}/projects", cancellationToken))
                 .Select(p => p.Name)
                 .ToArray();
         }

@@ -34,7 +34,7 @@ namespace GitMirrorAutomation.Logic.Sources
             _httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("GitMirrorAutomation", "v1"));
         }
 
-        public string Type => "Github";
+        public string Type => "github.com";
 
         public async Task<string[]> GetRepositoriesAsync(CancellationToken cancellationToken)
         {
