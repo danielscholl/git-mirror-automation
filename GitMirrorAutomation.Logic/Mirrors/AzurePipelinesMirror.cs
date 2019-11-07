@@ -33,6 +33,8 @@ namespace GitMirrorAutomation.Logic.Mirrors
             _log = log;
         }
 
+        public string Mirror => $"dev.azure.com/{DevOpsAccount}/{DevOpsProject}";
+
         public async Task<Mirror[]> GetExistingMirrorsAsync(CancellationToken cancellationToken)
         {
             await EnsureAccessToken(cancellationToken);

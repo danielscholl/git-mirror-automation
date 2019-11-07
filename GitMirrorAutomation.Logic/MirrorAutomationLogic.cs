@@ -20,7 +20,7 @@ namespace GitMirrorAutomation.Logic
         }
 
         public async Task ProcessAsync(
-            IRepositorySource scanner,
+            IRepositorySource source,
             IMirrorService mirrorService,
             IRepositoryTarget[] targets,
             CancellationToken cancellationToken)
@@ -28,8 +28,8 @@ namespace GitMirrorAutomation.Logic
             if (!targets.Any())
                 throw new NotSupportedException("At least one target is required!");
 
-            var repos = await scanner.GetRepositoriesAsync(cancellationToken);
-            _log.LogInformation($"Source has {repos.Length} repositories");
+            var repos = await source.GetRepositoriesAsync(cancellationToken);
+            _log.LogInformation($"Source has {repos.Length} repositories (to be mirrored by {mirrorService.Mirror})");
 
             var mirroredRepositories = (await mirrorService.GetExistingMirrorsAsync(cancellationToken))
                 .Select(x => x.Repository)
