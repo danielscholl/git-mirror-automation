@@ -1,10 +1,12 @@
 ﻿using GitMirrorAutomation.Logic.Config;
+using GitMirrorAutomation.Logic.Extensions;
 using GitMirrorAutomation.Logic.Mirrors;
 using GitMirrorAutomation.Logic.Sources;
 using GitMirrorAutomation.Logic.Targets;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
+using System.Text.Json;
 
 namespace GitMirrorAutomation.Logic
 {
@@ -18,13 +20,26 @@ namespace GitMirrorAutomation.Logic
             _log = log;
         }
 
-        public IRepositorySource GetRepositorySource(string source)
-            => new Uri(source).Host.ToLowerInvariant() switch
-
+        public IRepositorySource GetRepositorySource(JsonElement source)
+        {
+            if (source.ValueKind == JsonValueKind.String)
             {
-                "github.com" => new GithubRepositorySource(source),
-                _ => throw new NotSupportedException($"Unsupported source {source}")
-            };
+                var url = source.GetString();
+                switch (new Uri(url).Host.ToLowerInvariant())
+                {
+                    case "github.com":
+                        return new GithubRepositorySource(url);
+                    default:
+                        throw new NotSupportedException($"Unsupported source {source}");
+                }
+            }
+            else
+            {
+                var url = source.GetProperty("source").ToObject<string>();
+                var accessToken = source.GetProperty("accessToken").ToObject<AccessToken>();
+                return new AzureDevOpsRepositoryTarget(url, accessToken);
+            }
+        }
 
         public IMirrorService GetMirrorService(MirrorViaConfig mirrorConfig, IRepositorySource source)
             => new Uri(mirrorConfig.Type).Host.ToLowerInvariant() switch
@@ -42,7 +57,7 @@ namespace GitMirrorAutomation.Logic
             => new Uri(mirrorToConfig.Target).Host.ToLowerInvariant() switch
             {
                 "gitlab.com" => new GitlabRepositoryTarget(mirrorToConfig),
-                "dev.azure.com" => new AzureDevOpsRepositoryTarget(mirrorToConfig),
+                "dev.azure.com" => new AzureDevOpsRepositoryTarget(mirrorToConfig.Target, mirrorToConfig.AccessToken),
                 _ => throw new NotSupportedException($"Unsupported target {mirrorToConfig.Target}")
             };
     }

@@ -5,6 +5,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,12 +31,21 @@ namespace GitMirrorAutomation.Func
             foreach (var cfg in configurations)
             {
                 var automation = new MirrorAutomationLogic(log);
-                var scanner = configParser.GetRepositorySource(cfg.Source);
-                var mirrorService = configParser.GetMirrorService(cfg.MirrorViaConfig, scanner);
+                var source = configParser.GetRepositorySource(cfg.Source);
+                var mirrorService = configParser.GetMirrorService(cfg.MirrorViaConfig, source);
                 var targets = configParser.GetRepositoryTargets(cfg.MirrorToConfig);
-                log.LogInformation($"Processing source {cfg.Source}");
-                await automation.ProcessAsync(scanner, mirrorService, targets, cancellationToken);
+                log.LogInformation($"Processing source {source.SourceId} (to be replicated to {Join(", ", " and ", targets.Select(t => t.TargetId))})");
+                await automation.ProcessAsync(source, mirrorService, targets, cancellationToken);
             }
+        }
+
+        private static string Join<T>(string separator, string lastSeparator, IEnumerable<T> items)
+        {
+            var values = items as T[] ?? items.ToArray();
+            if (values.Length > 2)
+                return string.Join(separator, values.Take(values.Length - 1)) + lastSeparator + values.Last();
+
+            return string.Join(lastSeparator, values);
         }
 
         private static async Task<Configuration[]> LoadConfigFilesAsync(AzureBlobStorageProvider storageProvider, CancellationToken cancellationToken)

@@ -37,6 +37,8 @@ namespace GitMirrorAutomation.Logic.Sources
 
         public string Type => "github.com";
 
+        public string SourceId => $"{Type}/{UserName}";
+
         public async Task<IRepository[]> GetRepositoriesAsync(CancellationToken cancellationToken)
         {
             return await _httpClient.GetPaginatedAsync<GithubRepository>($"users/{UserName}/repos", cancellationToken);

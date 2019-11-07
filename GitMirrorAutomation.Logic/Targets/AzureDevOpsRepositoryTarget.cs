@@ -11,12 +11,14 @@ namespace GitMirrorAutomation.Logic.Targets
 {
     public class AzureDevOpsRepositoryTarget : AzureDevOpsBase, IRepositoryTarget
     {
-        public AzureDevOpsRepositoryTarget(MirrorToConfig mirrorToConfig)
-            : base(mirrorToConfig.Target, mirrorToConfig.AccessToken)
+        public AzureDevOpsRepositoryTarget(string url, AccessToken accessToken)
+            : base(url, accessToken)
         {
         }
 
         public string Type => "dev.azure.com";
+        public string SourceId => $"{Type}/{DevOpsAccount}/{DevOpsProject}";
+        public string TargetId => SourceId;
 
         public async Task CreateRepositoryAsync(IRepository repository, CancellationToken cancellationToken)
         {

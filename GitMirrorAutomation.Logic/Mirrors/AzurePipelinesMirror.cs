@@ -2,6 +2,7 @@
 using GitMirrorAutomation.Logic.Helpers;
 using GitMirrorAutomation.Logic.Models;
 using GitMirrorAutomation.Logic.Sources;
+using GitMirrorAutomation.Logic.Targets;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
@@ -33,7 +34,7 @@ namespace GitMirrorAutomation.Logic.Mirrors
             _log = log;
         }
 
-        public string Mirror => $"dev.azure.com/{DevOpsAccount}/{DevOpsProject}";
+        public string MirrorId => $"dev.azure.com/{DevOpsAccount}/{DevOpsProject}";
 
         public async Task<Mirror[]> GetExistingMirrorsAsync(CancellationToken cancellationToken)
         {
@@ -52,10 +53,23 @@ namespace GitMirrorAutomation.Logic.Mirrors
                 }
 
                 var repoName = build.Name.Substring(_config.BuildNamePrefix.Length);
-                var expectedRepoUrl = _repositorySource.GetRepositoryUrl(new Repository
+                var repo = new Repository
                 {
                     Name = repoName
-                });
+                };
+                if (_repositorySource.Type == "dev.azure.com" &&
+                    repoName.Contains(" - "))
+                {
+                    var ado = (AzureDevOpsRepositoryTarget)_repositorySource;
+                    // ADO to ADO clone uses "Project - Repo" in build name when repo is in different repo than the build
+                    var parts = repoName.Split(" - ");
+                    repo = new AzureDevOpsRepository
+                    {
+                        Name = parts[1],
+                        GitUrl = $"https://dev.azure.com/{ado.DevOpsAccount}/{parts[0]}/_git/{parts[1]}"
+                    };
+                }
+                var expectedRepoUrl = _repositorySource.GetRepositoryUrl(repo);
 
                 // repo property isn't loaded in overall list, so get definition
                 // to ensure build is using correct source repo
@@ -72,7 +86,7 @@ namespace GitMirrorAutomation.Logic.Mirrors
                 {
                     BuildName = build.Name,
                     Id = build.Id,
-                    Repository = repoName
+                    Repository = repo.Name
                 });
             }
             if (!_buildToCloneId.HasValue)
@@ -126,6 +140,20 @@ namespace GitMirrorAutomation.Logic.Mirrors
                     jObject["name"] = _config.BuildNamePrefix + repository.Name;
 
                     jObject["repository"]["url"] = githubWebUrl;
+                    break;
+                case "dev.azure.com":
+                    var ado = (AzureDevOpsRepositoryTarget)_repositorySource;
+
+                    if (!(repository is AzureDevOpsRepository adoRepo))
+                        throw new NotSupportedException($"Received unsupported repository {repository.GetType()} from dev.azure.com");
+
+                    // https://dev.azure.com/{DevOpsAccount}/{DevOpsProject}/_git/{repository.Name}
+                    var project = adoRepo.GitUrl.Split('/')[4];
+
+                    jObject["repository"]["id"] = adoRepo.Id;
+                    jObject["repository"]["name"] = repository.Name;
+                    jObject["repository"]["url"] = _repositorySource.GetRepositoryUrl(repository);
+                    jObject["name"] = _config.BuildNamePrefix + project + " - " + repository.Name;
                     break;
                 default:
                     throw new NotSupportedException($"Currently {_repositorySource.Type} is not supported as a repository source!");

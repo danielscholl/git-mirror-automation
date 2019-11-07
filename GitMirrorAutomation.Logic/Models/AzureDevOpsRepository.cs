@@ -9,5 +9,7 @@ namespace GitMirrorAutomation.Logic.Models
         /// </summary>
         [JsonPropertyName("webUrl")]
         public string GitUrl { get; set; } = "";
+
+        public string Id { get; set; } = "";
     }
 }

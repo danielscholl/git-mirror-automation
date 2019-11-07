@@ -6,7 +6,7 @@ namespace GitMirrorAutomation.Logic.Mirrors
 {
     public interface IMirrorService
     {
-        string Mirror { get; }
+        string MirrorId { get; }
 
         Task<Mirror[]> GetExistingMirrorsAsync(CancellationToken cancellationToken);
 

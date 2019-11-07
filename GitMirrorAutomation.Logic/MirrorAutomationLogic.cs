@@ -29,7 +29,7 @@ namespace GitMirrorAutomation.Logic
                 throw new NotSupportedException("At least one target is required!");
 
             var repos = await source.GetRepositoriesAsync(cancellationToken);
-            _log.LogInformation($"Source has {repos.Length} repositories (to be mirrored by {mirrorService.Mirror})");
+            _log.LogInformation($"Source {source.SourceId} has {repos.Length} repositories (to be mirrored by {mirrorService.MirrorId})");
 
             var mirroredRepositories = (await mirrorService.GetExistingMirrorsAsync(cancellationToken))
                 .Select(x => x.Repository)

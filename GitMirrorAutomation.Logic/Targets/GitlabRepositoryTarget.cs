@@ -18,7 +18,6 @@ namespace GitMirrorAutomation.Logic.Targets
 
         private readonly MirrorToConfig _mirrorToConfig;
         private readonly HttpClient _httpClient;
-        private string _userName;
 
         public GitlabRepositoryTarget(
             MirrorToConfig mirrorToConfig)
@@ -29,7 +28,7 @@ namespace GitMirrorAutomation.Logic.Targets
             if (!match.Success)
                 throw new ArgumentException("Expected a valid gitlab username url but got: " + _mirrorToConfig.Target);
 
-            _userName = match.Groups[1].Value;
+            UserName = match.Groups[1].Value;
 
             _httpClient = new HttpClient
             {
@@ -37,7 +36,12 @@ namespace GitMirrorAutomation.Logic.Targets
             };
         }
 
+        public string UserName { get; }
+
         public string Type => "gitlab.com";
+
+        public string SourceId => $"{Type}/{UserName}";
+        public string TargetId => SourceId;
 
         public async Task CreateRepositoryAsync(IRepository repository, CancellationToken cancellationToken)
         {
@@ -67,11 +71,11 @@ namespace GitMirrorAutomation.Logic.Targets
         {
             await EnsureAccessToken(cancellationToken);
 
-            return (await _httpClient.GetPaginatedAsync<GitlabRepository>($"users/{_userName}/projects", cancellationToken))
+            return (await _httpClient.GetPaginatedAsync<GitlabRepository>($"users/{UserName}/projects", cancellationToken))
                 .ToArray();
         }
 
         public string GetRepositoryUrl(IRepository repository)
-            => repository is GitlabRepository glRepo ? glRepo.GitUrl : $"https://gitlab.com/{_userName}/{repository.Name}.git";
+            => repository is GitlabRepository glRepo ? glRepo.GitUrl : $"https://gitlab.com/{UserName}/{repository.Name}.git";
     }
 }

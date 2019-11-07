@@ -8,9 +8,9 @@ Currently only public repositories are supported as a Gitlab target (authenticat
 
 ``` json
 {
-    "target": "https://gitlab.com/MarcStan",
+    "target": "https://gitlab.com/<github user>",
     "accessToken": {
-        "source": "https://mykeyvault.vault.azure.net",
+        "source": "https://<keyvault name>.vault.azure.net",
         "secretName": "MyGitlabPAT"
     }
 }
@@ -22,18 +22,33 @@ Required Gitlab scopes on the access token: **api**
 
 Azure DevOps projects can be private (default) or public. Either way authentication is required to create repositories.
 
-The access token must have at least permission to read repositories in the project.
 ``` json
 {
-    "target": "https://dev.azure.com/marcstanlive/Opensource",
+    "target": "https://dev.azure.com/<account name>/<project name>",
     "accessToken": {
-        "source": "https://mykeyvault.vault.azure.net",
+        "source": "https://<keyvault name>.vault.azure.net",
         "secretName": "MyDevOpsGitPAT"
     }
 }
 ```
 
-Required permissions on the Azure DevOps access token: **Code (read & write)**
+Required permissions on the Azure DevOps access token: **Code (read, write & manage)**
+
+## Entire Azure DevOps Account
+
+**Note:** When using an Azure DevOps account as a target then you must also use an Azure DevOps account as the source.
+
+``` json
+{
+    "target": "https://dev.azure.com/<account name>/*",
+    "accessToken": {
+        "source": "https://<keyvault name>.vault.azure.net",
+        "secretName": "MyDevOpsGitPAT"
+    }
+}
+```
+
+Required permissions on the Azure DevOps access token: **Code (read, write & manage), Project and Team (Read, write, & manage)**
 
 ## Access token
 

@@ -1,10 +1,11 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace GitMirrorAutomation.Logic.Config
 {
     public class Configuration
     {
-        public string Source { get; set; } = "";
+        public JsonElement Source { get; set; } = new JsonElement();
 
         [JsonPropertyName("mirror-via")]
         public MirrorViaConfig MirrorViaConfig { get; set; } = new MirrorViaConfig();
