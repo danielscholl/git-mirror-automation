@@ -1,0 +1,27 @@
+{
+  "source": {
+    "source": "https://dev.azure.com/SuperSecretAccountThatIsNotPublic/MyProject",
+    "accessToken": {
+      "source": "https://mykeyvault.vault.azure.net",
+      "secretName": "MyDevOpsGitPAT"
+    }
+  },
+    "mirror-via": {
+      "type": "https://dev.azure.com/marcstanlive/Opensource",
+      "buildToClone": "[Github clone] MyBuild",
+      "buildNamePrefix": "[Github clone] ",
+      "accessToken": {
+        "source": "https://mykeyvault.vault.azure.net",
+        "secretName": "MyDevOpsBuildPAT"
+      }
+    },
+    "mirror-to": [
+      {
+        "target": "https://dev.azure.com/AnotherSuperSecretAccount/MySecretMirrorProject",
+        "accessToken": {
+          "source": "https://mykeyvault.vault.azure.net",
+          "secretName": "MyDevOpsGitPAT"
+        }
+      }
+    ]
+  }

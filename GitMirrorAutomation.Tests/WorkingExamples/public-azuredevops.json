@@ -1,0 +1,21 @@
+{
+  "source": "https://dev.azure.com/marcstanlive/Opensource",
+  "mirror-via": {
+    "type": "https://dev.azure.com/marcstanlive/Opensource",
+    "buildToClone": "[Github clone] MyBuild",
+    "buildNamePrefix": "[Github clone] ",
+    "accessToken": {
+      "source": "https://mykeyvault.vault.azure.net",
+      "secretName": "MyDevOpsBuildPAT"
+    }
+  },
+  "mirror-to": [
+    {
+      "target": "https://gitlab.com/MarcStan",
+      "accessToken": {
+        "source": "https://mykeyvault.vault.azure.net",
+        "secretName": "MyGitlabPAT"
+      }
+    }
+  ]
+}
