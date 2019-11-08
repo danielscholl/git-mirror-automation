@@ -15,6 +15,16 @@ namespace GitMirrorAutomation.Logic.Targets
 {
     public class AzureDevOpsRepositoryTarget : AzureDevOpsBase, IRepositoryTarget
     {
+        private readonly string[] _projectsToIgnore = new string[0];
+        private readonly string[] _repositoriesToIgnore = new string[0];
+
+        public AzureDevOpsRepositoryTarget(SourceConfig source)
+            : base(source.Source, source.AccessToken)
+        {
+            _projectsToIgnore = source.ProjectsToIgnore;
+            _repositoriesToIgnore = source.RepositoriesToIgnore;
+        }
+
         public AzureDevOpsRepositoryTarget(string url, AccessToken accessToken)
             : base(url, accessToken)
         {
@@ -34,6 +44,7 @@ namespace GitMirrorAutomation.Logic.Targets
             {
                 Name = repository.Name,
             });
+
             if (DevOpsProject == null)
             {
                 if (!(source is AzureDevOpsRepositoryTarget adoSource))
@@ -49,12 +60,16 @@ namespace GitMirrorAutomation.Logic.Targets
         {
             await EnsureAccessToken(cancellationToken);
             if (DevOpsProject != null)
-                return await GetCollectionAsync<AzureDevOpsRepository>($"https://dev.azure.com/{DevOpsOrganization}/{DevOpsProject}/_apis/git/repositories?api-version=5.1", cancellationToken);
+                return (await GetCollectionAsync<AzureDevOpsRepository>($"https://dev.azure.com/{DevOpsOrganization}/{DevOpsProject}/_apis/git/repositories?api-version=5.1", cancellationToken))
+                    .Where(r => !_repositoriesToIgnore.Contains(r.Name))
+                    .ToArray();
 
             var repos = new List<IRepository>();
-            foreach (var project in await GetProjectsAsync(cancellationToken))
+            foreach (var project in (await GetProjectsAsync(cancellationToken))
+                .Where(p => !_projectsToIgnore.Contains(p.Name)))
             {
-                repos.AddRange(await GetCollectionAsync<AzureDevOpsRepository>($"https://dev.azure.com/{DevOpsOrganization}/{project.Name}/_apis/git/repositories?api-version=5.1", cancellationToken));
+                repos.AddRange((await GetCollectionAsync<AzureDevOpsRepository>($"https://dev.azure.com/{DevOpsOrganization}/{project.Name}/_apis/git/repositories?api-version=5.1", cancellationToken))
+                    .Where(r => !_repositoriesToIgnore.Contains(r.Name)));
             }
             return repos.ToArray();
         }

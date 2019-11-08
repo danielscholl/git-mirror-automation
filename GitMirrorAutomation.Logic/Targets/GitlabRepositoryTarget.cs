@@ -17,11 +17,11 @@ namespace GitMirrorAutomation.Logic.Targets
     {
         private static readonly Regex _userRegex = new Regex(@"https:\/\/gitlab\.com\/([^/?&# ]+)$");
 
-        private readonly MirrorToConfig _mirrorToConfig;
+        private readonly TargetConfig _mirrorToConfig;
         private readonly HttpClient _httpClient;
 
         public GitlabRepositoryTarget(
-            MirrorToConfig mirrorToConfig)
+            TargetConfig mirrorToConfig)
         {
             _mirrorToConfig = mirrorToConfig;
 

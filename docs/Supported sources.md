@@ -30,9 +30,13 @@ By default Azure DevOps projects are private. To use a private DevOps project as
 {
   "source": {
     "source": "https://dev.azure.com/<account name>/<project name>",
+    "repositoriesToIgnore": [
+      "optional",
+      "names-of-repos-not-to-clone"
+    ],
     "accessToken": {
       ..
-    }
+    },
   }
 }
 ```
@@ -47,6 +51,14 @@ You can also clone an entire Azure DevOps organization (all projects). To use a 
 {
   "source": {
     "source": "https://dev.azure.com/<account name>/*",
+    "repositoriesToIgnore": [
+      "optional",
+      "names-of-repos-not-to-clone"
+    ],
+    "projectsToIgnore": [
+      "optional",
+      "names-of-projects-not-to-clone"
+    ],
     "accessToken": {
       ..
     }

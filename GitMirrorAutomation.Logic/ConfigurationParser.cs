@@ -35,9 +35,8 @@ namespace GitMirrorAutomation.Logic
             }
             else
             {
-                var url = source.GetProperty("source").ToObject<string>();
-                var accessToken = source.GetProperty("accessToken").ToObject<AccessToken>();
-                return new AzureDevOpsRepositoryTarget(url, accessToken);
+                var cfg = source.ToObject<SourceConfig>();
+                return new AzureDevOpsRepositoryTarget(cfg);
             }
         }
 
@@ -48,12 +47,12 @@ namespace GitMirrorAutomation.Logic
                 _ => throw new NotSupportedException($"Unsupported mirror {mirrorConfig.Type}")
             };
 
-        public IRepositoryTarget[] GetRepositoryTargets(MirrorToConfig[] mirrorToConfig)
+        public IRepositoryTarget[] GetRepositoryTargets(TargetConfig[] mirrorToConfig)
         {
             return mirrorToConfig.Select(GetRepositoryTarget).ToArray();
         }
 
-        private IRepositoryTarget GetRepositoryTarget(MirrorToConfig mirrorToConfig)
+        private IRepositoryTarget GetRepositoryTarget(TargetConfig mirrorToConfig)
             => new Uri(mirrorToConfig.Target).Host.ToLowerInvariant() switch
             {
                 "gitlab.com" => new GitlabRepositoryTarget(mirrorToConfig),

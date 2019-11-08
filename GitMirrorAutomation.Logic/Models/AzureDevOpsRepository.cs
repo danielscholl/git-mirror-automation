@@ -1,7 +1,9 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Diagnostics;
+using System.Text.Json.Serialization;
 
 namespace GitMirrorAutomation.Logic.Models
 {
+    [DebuggerDisplay("{DebugString}")]
     public class AzureDevOpsRepository : Repository
     {
         /// <summary>
@@ -16,5 +18,7 @@ namespace GitMirrorAutomation.Logic.Models
         public string Project => GitUrl.Split('/')[4];
 
         public string Organization => GitUrl.Split('/')[3];
+
+        public string DebugString => $"https://dev.azure.com/{Organization}/{Project}/_git/{Name}";
     }
 }

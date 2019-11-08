@@ -33,7 +33,7 @@ namespace GitMirrorAutomation.Func
                 var automation = new MirrorAutomationLogic(log);
                 var source = configParser.GetRepositorySource(cfg.Source);
                 var mirrorService = configParser.GetMirrorService(cfg.MirrorViaConfig, source);
-                var targets = configParser.GetRepositoryTargets(cfg.MirrorToConfig);
+                var targets = configParser.GetRepositoryTargets(cfg.TargetConfig);
                 log.LogInformation($"Processing source {source.SourceId} (to be replicated to {Join(", ", " and ", targets.Select(t => t.TargetId))})");
                 await automation.ProcessAsync(source, mirrorService, targets, cancellationToken);
             }

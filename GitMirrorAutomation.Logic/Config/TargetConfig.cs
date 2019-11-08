@@ -1,6 +1,6 @@
 ﻿namespace GitMirrorAutomation.Logic.Config
 {
-    public class MirrorToConfig
+    public class TargetConfig
     {
         public string Target { get; set; } = "";
 
