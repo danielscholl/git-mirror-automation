@@ -39,9 +39,9 @@ By default Azure DevOps projects are private. To use a private DevOps project as
 
 Required permissions on the Azure DevOps access token: **Code (read)**
 
-## Entire Azure DevOps Account:
+## Entire Azure DevOps organization:
 
-You can also clone an entire Azure DevOps account (all projects). To use a DevOps account as a mirror source you must provide an access token along with the url.
+You can also clone an entire Azure DevOps organization (all projects). To use a DevOps organization as a mirror source you must provide an access token along with the url.
 
 ``` json
 {
@@ -56,7 +56,7 @@ You can also clone an entire Azure DevOps account (all projects). To use a DevOp
 
 Required permissions on the Azure DevOps access token: **Code (read), Project and Team (Read)**
 
-**Note:** When using this source then the only type of valid target is another DevOps account!
+**Note:** When using this source then the only type of valid target is another DevOps organization!
 
 ## Access token
 

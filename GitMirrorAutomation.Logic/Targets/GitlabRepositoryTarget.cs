@@ -1,6 +1,7 @@
 ﻿using GitMirrorAutomation.Logic.Config;
 using GitMirrorAutomation.Logic.Helpers;
 using GitMirrorAutomation.Logic.Models;
+using GitMirrorAutomation.Logic.Sources;
 using System;
 using System.Linq;
 using System.Net.Http;
@@ -14,7 +15,7 @@ namespace GitMirrorAutomation.Logic.Targets
 {
     public class GitlabRepositoryTarget : IRepositoryTarget
     {
-        private static readonly Regex _userRegex = new Regex(@"https:\/\/gitlab\.com\/([^/?&# ]+)");
+        private static readonly Regex _userRegex = new Regex(@"https:\/\/gitlab\.com\/([^/?&# ]+)$");
 
         private readonly MirrorToConfig _mirrorToConfig;
         private readonly HttpClient _httpClient;
@@ -43,7 +44,7 @@ namespace GitMirrorAutomation.Logic.Targets
         public string SourceId => $"{Type}/{UserName}";
         public string TargetId => SourceId;
 
-        public async Task CreateRepositoryAsync(IRepository repository, CancellationToken cancellationToken)
+        public async Task CreateRepositoryAsync(IRepositorySource source, IRepository repository, CancellationToken cancellationToken)
         {
             var json = JsonSerializer.Serialize(new
             {

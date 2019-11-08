@@ -9,6 +9,6 @@ namespace GitMirrorAutomation.Logic.Targets
     {
         string TargetId { get; }
 
-        Task CreateRepositoryAsync(IRepository repository, CancellationToken cancellationToken);
+        Task CreateRepositoryAsync(IRepositorySource source, IRepository repository, CancellationToken cancellationToken);
     }
 }

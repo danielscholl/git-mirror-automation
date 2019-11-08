@@ -20,12 +20,28 @@ namespace GitMirrorAutomation.Tests
         }
 
         [Test]
-        public void AzureDevOpsSourceSupport()
+        public void AzureDevOpsProjectSourceSupport()
         {
             var processor = new ConfigurationParser(new Mock<ILogger>().Object);
             var source = processor.GetRepositorySource(ToJson(new
             {
                 source = "https://dev.azure.com/marcstanlive/Opensoure",
+                accessToken = new
+                {
+                    source = "https://mykeyvault.vault.azure.net",
+                    secretName = "MyDevOpsGitPAT"
+                }
+            }));
+            source.Should().BeOfType<AzureDevOpsRepositoryTarget>();
+        }
+
+        [Test]
+        public void AzureDevOpsAccountSourceSupport()
+        {
+            var processor = new ConfigurationParser(new Mock<ILogger>().Object);
+            var source = processor.GetRepositorySource(ToJson(new
+            {
+                source = "https://dev.azure.com/marcstanlive/*",
                 accessToken = new
                 {
                     source = "https://mykeyvault.vault.azure.net",

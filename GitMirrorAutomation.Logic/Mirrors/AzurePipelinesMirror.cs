@@ -32,9 +32,12 @@ namespace GitMirrorAutomation.Logic.Mirrors
             _config = config;
             _repositorySource = repositorySource;
             _log = log;
+
+            if (DevOpsProject == null)
+                throw new NotSupportedException("Mirror must be set up in a specific project and does not support organization level!");
         }
 
-        public string MirrorId => $"dev.azure.com/{DevOpsAccount}/{DevOpsProject}";
+        public string MirrorId => $"dev.azure.com/{DevOpsOrganization}/{DevOpsProject}";
 
         public async Task<Mirror[]> GetExistingMirrorsAsync(CancellationToken cancellationToken)
         {
@@ -66,7 +69,7 @@ namespace GitMirrorAutomation.Logic.Mirrors
                     repo = new AzureDevOpsRepository
                     {
                         Name = parts[1],
-                        GitUrl = $"https://dev.azure.com/{ado.DevOpsAccount}/{parts[0]}/_git/{parts[1]}"
+                        GitUrl = $"https://dev.azure.com/{ado.DevOpsOrganization}/{parts[0]}/_git/{parts[1]}"
                     };
                 }
                 var expectedRepoUrl = _repositorySource.GetRepositoryUrl(repo);
@@ -147,8 +150,7 @@ namespace GitMirrorAutomation.Logic.Mirrors
                     if (!(repository is AzureDevOpsRepository adoRepo))
                         throw new NotSupportedException($"Received unsupported repository {repository.GetType()} from dev.azure.com");
 
-                    // https://dev.azure.com/{DevOpsAccount}/{DevOpsProject}/_git/{repository.Name}
-                    var project = adoRepo.GitUrl.Split('/')[4];
+                    var project = adoRepo.Project;
 
                     jObject["repository"]["id"] = adoRepo.Id;
                     jObject["repository"]["name"] = repository.Name;
@@ -160,7 +162,7 @@ namespace GitMirrorAutomation.Logic.Mirrors
             }
 
             var json = jObject.ToString();
-            var response = await HttpClient.PostAsync("build/definitions?api-version=5.1", new StringContent(json, Encoding.UTF8, "application/json"), cancellationToken);
+            var response = await HttpClient.PostAsync($"https://dev.azure.com/{DevOpsOrganization}/{DevOpsProject}/_apis/build/definitions?api-version=5.1", new StringContent(json, Encoding.UTF8, "application/json"), cancellationToken);
             response.EnsureSuccessStatusCode();
             var createdBuildJson = await response.Content.ReadAsStringAsync();
             var build = JsonSerializer.Deserialize<Build>(createdBuildJson, JsonSettings.Default);
@@ -173,19 +175,19 @@ namespace GitMirrorAutomation.Logic.Mirrors
                     id = build.Id
                 }
             }, JsonSettings.Default);
-            response = await HttpClient.PostAsync("build/builds?api-version=5.1", new StringContent(json, Encoding.UTF8, "application/json"), cancellationToken);
+            response = await HttpClient.PostAsync($"https://dev.azure.com/{DevOpsOrganization}/{DevOpsProject}/_apis/build/builds?api-version=5.1", new StringContent(json, Encoding.UTF8, "application/json"), cancellationToken);
             response.EnsureSuccessStatusCode();
         }
 
         private async Task<JsonElement> GetBuildDefinitionAsync(int id, CancellationToken cancellationToken)
         {
-            var response = await HttpClient.GetAsync($"build/definitions/{id}?api-version=5.1");
+            var response = await HttpClient.GetAsync($"https://dev.azure.com/{DevOpsOrganization}/{DevOpsProject}/_apis/build/definitions/{id}?api-version=5.1");
             response.EnsureSuccessStatusCode();
             return await JsonSerializer.DeserializeAsync<JsonElement>(await response.Content.ReadAsStreamAsync(), JsonSettings.Default, cancellationToken);
         }
 
         private Task<Build[]> GetBuildsAsync(CancellationToken cancellationToken)
-            => GetCollectionAsync<Build>("build/definitions?api-version=5.1", cancellationToken);
+            => GetCollectionAsync<Build>($"https://dev.azure.com/{DevOpsOrganization}/{DevOpsProject}/_apis/build/definitions?api-version=5.1", cancellationToken);
 
         private class Build
         {

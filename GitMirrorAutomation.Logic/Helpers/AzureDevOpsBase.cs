@@ -14,7 +14,7 @@ namespace GitMirrorAutomation.Logic.Helpers
 {
     public abstract class AzureDevOpsBase
     {
-        private static readonly Regex _devOpsRegex = new Regex(@"https:\/\/dev\.azure\.com\/([^/?&# ]+)/([^/?&#]+)");
+        private static readonly Regex _devOpsRegex = new Regex(@"https:\/\/dev\.azure\.com\/([^/?&# ]+)/(\*|[^/?&#]+)");
         private readonly AccessToken _accessToken;
 
         protected AzureDevOpsBase(
@@ -23,33 +23,33 @@ namespace GitMirrorAutomation.Logic.Helpers
         {
             var match = _devOpsRegex.Match(type);
             if (!match.Success)
-                throw new ArgumentException("Expected a valid devops account url but got: " + type);
+                throw new ArgumentException("Expected a valid DevOps organization url but got: " + type);
 
-            DevOpsAccount = match.Groups[1].Value;
-            DevOpsProject = match.Groups[2].Value;
+            DevOpsOrganization = match.Groups[1].Value;
+            if (match.Groups[2].Value != "*")
+                DevOpsProject = match.Groups[2].Value;
 
-            HttpClient = new HttpClient
-            {
-                BaseAddress = new Uri($"https://dev.azure.com/{DevOpsAccount}/{DevOpsProject}/_apis/")
-            };
+            HttpClient = new HttpClient();
             HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             _accessToken = accessToken;
         }
 
-        public string DevOpsAccount { get; }
+        public string DevOpsOrganization { get; }
 
-        public string DevOpsProject { get; }
+        /// <summary>
+        /// Null if source is set to be the entire organization.
+        /// </summary>
+        public string? DevOpsProject { get; }
 
         protected HttpClient HttpClient { get; }
 
         protected async Task<T[]> GetCollectionAsync<T>(string url, CancellationToken cancellationToken)
         {
             string? continuationToken = null;
-            var nextUrl = url;
             var items = new List<T>();
             do
             {
-                nextUrl = url +
+                var nextUrl = url +
                     (continuationToken != null ? $"&continuationToken={continuationToken}" : "");
                 var response = await HttpClient.GetAsync(nextUrl, cancellationToken);
                 response.EnsureSuccessStatusCode();

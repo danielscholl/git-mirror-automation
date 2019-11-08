@@ -34,9 +34,9 @@ Azure DevOps projects can be private (default) or public. Either way authenticat
 
 Required permissions on the Azure DevOps access token: **Code (read, write & manage)**
 
-## Entire Azure DevOps Account
+## Entire Azure DevOps organization
 
-**Note:** When using an Azure DevOps account as a target then you must also use an Azure DevOps account as the source.
+**Note:** When using an Azure DevOps organization as a target then you must also use an Azure DevOps organization as the source.
 
 ``` json
 {

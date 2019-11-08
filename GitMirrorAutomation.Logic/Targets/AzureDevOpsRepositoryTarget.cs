@@ -1,6 +1,10 @@
 ﻿using GitMirrorAutomation.Logic.Config;
 using GitMirrorAutomation.Logic.Helpers;
 using GitMirrorAutomation.Logic.Models;
+using GitMirrorAutomation.Logic.Sources;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -17,28 +21,110 @@ namespace GitMirrorAutomation.Logic.Targets
         }
 
         public string Type => "dev.azure.com";
-        public string SourceId => $"{Type}/{DevOpsAccount}/{DevOpsProject}";
+        public string SourceId => $"{Type}/{DevOpsOrganization}/{DevOpsProject ?? "*"}";
         public string TargetId => SourceId;
 
-        public async Task CreateRepositoryAsync(IRepository repository, CancellationToken cancellationToken)
+        public async Task CreateRepositoryAsync(IRepositorySource source, IRepository repository, CancellationToken cancellationToken)
         {
+            if (!(repository is AzureDevOpsRepository adoRepo))
+                throw new NotSupportedException($"Cannot create DevOps repository from {repository.GetType()}");
+
             await EnsureAccessToken(cancellationToken);
             var json = JsonSerializer.Serialize(new Repository
             {
-                Name = repository.Name
+                Name = repository.Name,
             });
-            var response = await HttpClient.PostAsync("git/repositories?api-version=5.1", new StringContent(json, Encoding.UTF8, "application/json"), cancellationToken);
+            if (DevOpsProject == null)
+            {
+                if (!(source is AzureDevOpsRepositoryTarget adoSource))
+                    throw new NotSupportedException($"Can only mirror entire Azure DevOps organization to another Azure DevOps organization, but found source: {source.GetType()}");
+                // may be missing in target org
+                await CreateProjectAsync(adoSource, adoRepo, cancellationToken);
+            }
+            var response = await HttpClient.PostAsync($"https://dev.azure.com/{DevOpsOrganization}/{DevOpsProject ?? adoRepo.Project}/_apis/git/repositories?api-version=5.1", new StringContent(json, Encoding.UTF8, "application/json"), cancellationToken);
             response.EnsureSuccessStatusCode();
         }
 
         public async Task<IRepository[]> GetRepositoriesAsync(CancellationToken cancellationToken)
         {
             await EnsureAccessToken(cancellationToken);
+            if (DevOpsProject != null)
+                return await GetCollectionAsync<AzureDevOpsRepository>($"https://dev.azure.com/{DevOpsOrganization}/{DevOpsProject}/_apis/git/repositories?api-version=5.1", cancellationToken);
 
-            return await GetCollectionAsync<AzureDevOpsRepository>("git/repositories?api-version=5.1", cancellationToken);
+            var repos = new List<IRepository>();
+            foreach (var project in await GetProjectsAsync(cancellationToken))
+            {
+                repos.AddRange(await GetCollectionAsync<AzureDevOpsRepository>($"https://dev.azure.com/{DevOpsOrganization}/{project.Name}/_apis/git/repositories?api-version=5.1", cancellationToken));
+            }
+            return repos.ToArray();
         }
 
         public string GetRepositoryUrl(IRepository repository)
-            => repository is AzureDevOpsRepository adoRepo ? adoRepo.GitUrl : $"https://dev.azure.com/{DevOpsAccount}/{DevOpsProject}/_git/{repository.Name}";
+            => repository is AzureDevOpsRepository adoRepo ? adoRepo.GitUrl : $"https://dev.azure.com/{DevOpsOrganization}/{DevOpsProject}/_git/{repository.Name}";
+
+        private Task<Project[]> GetProjectsAsync(CancellationToken cancellationToken)
+            => GetCollectionAsync<Project>($"https://dev.azure.com/{DevOpsOrganization}/_apis/projects?api-version=5.1", cancellationToken);
+
+        private async Task CreateProjectAsync(AzureDevOpsRepositoryTarget source, AzureDevOpsRepository repo, CancellationToken cancellationToken)
+        {
+            var targetProjects = await GetProjectsAsync(cancellationToken);
+            var matched = targetProjects.FirstOrDefault(p => p.Name == repo.Project);
+            if (matched != null)
+                return;
+
+            // get project from source again to also mirror its visibility & description
+            var sourceProjects = await source.GetProjectsAsync(cancellationToken);
+            var toClone = sourceProjects.Single(p => p.Name == repo.Project);
+            // properties are stored separate
+
+            // first get project to get id (not set in list)
+            var response = await source.HttpClient.GetAsync($"https://dev.azure.com/{source.DevOpsOrganization}/_apis/projects/{toClone.Name}?api-version=5.1", cancellationToken);
+            response.EnsureSuccessStatusCode();
+            var sourceProject = await JsonSerializer.DeserializeAsync<Project>(await response.Content.ReadAsStreamAsync(), JsonSettings.Default, cancellationToken);
+            // with project id we can query project properties
+            // api is eternally in preview
+            var properties = await source.GetCollectionAsync<NameValue>($"https://dev.azure.com/{source.DevOpsOrganization}/_apis/projects/{sourceProject.Id}/properties?api-version=5.1-preview.1", cancellationToken);
+            // fallback to hardcoded default project template id
+            var correctProcess = properties.FirstOrDefault(p => p.Name == "System.ProcessTemplateType")?.Value.GetString() ?? "b8a3a935-7e91-48b8-a94c-606d37c3e9f2";
+            var json = JsonSerializer.Serialize(new
+            {
+                name = toClone.Name,
+                description = toClone.Description,
+                visibility = toClone.Visibility,
+                capabilities = new
+                {
+                    versioncontrol = new
+                    {
+                        sourceControlType = "Git"
+                    },
+                    processTemplate = new
+                    {
+                        templateTypeId = correctProcess
+                    }
+                }
+            }, JsonSettings.Default);
+            response = await HttpClient.PostAsync($"https://dev.azure.com/{DevOpsOrganization}/_apis/projects?api-version=5.1", new StringContent(json, Encoding.UTF8, "application/json"), cancellationToken);
+            response.EnsureSuccessStatusCode();
+            // should wait for project creation as it takes some time. if we don't then git repo creation fails
+            // don't bother because function runs every 5 mins -> repo will be created soon after again until it succeeds
+        }
+
+        private class Project
+        {
+            public string Id { get; set; } = "";
+
+            public string Name { get; set; } = "";
+
+            public string Visibility { get; set; } = "private";
+
+            public string Description { get; set; } = "";
+        }
+
+        public class NameValue
+        {
+            public string Name { get; set; } = "";
+
+            public JsonElement Value { get; set; } = new JsonElement();
+        }
     }
 }

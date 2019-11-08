@@ -11,5 +11,10 @@ namespace GitMirrorAutomation.Logic.Models
         public string GitUrl { get; set; } = "";
 
         public string Id { get; set; } = "";
+
+        // https://dev.azure.com/{DevOpsAccount}/{DevOpsProject}/_git/{repository.Name}
+        public string Project => GitUrl.Split('/')[4];
+
+        public string Organization => GitUrl.Split('/')[3];
     }
 }

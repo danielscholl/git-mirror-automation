@@ -11,7 +11,7 @@ namespace GitMirrorAutomation.Logic.Sources
 {
     public class GithubRepositorySource : IRepositorySource
     {
-        private readonly Regex _userRegex = new Regex(@"https:\/\/github\.com\/([^/?&# ]+)");
+        private readonly Regex _userRegex = new Regex(@"https:\/\/github\.com\/([^/?&# ]+)$");
 
         private readonly HttpClient _httpClient;
 

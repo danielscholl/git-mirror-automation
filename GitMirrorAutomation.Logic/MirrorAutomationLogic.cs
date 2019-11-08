@@ -52,7 +52,7 @@ namespace GitMirrorAutomation.Logic
                     if (existing.Any(e => e.Name == repo.Name))
                         continue;
 
-                    await target.CreateRepositoryAsync(repo, cancellationToken);
+                    await target.CreateRepositoryAsync(source, repo, cancellationToken);
                 }
                 await mirrorService.SetupMirrorAsync(repo, cancellationToken);
                 _log.LogInformation($"Created mirror for repository {repo.Name}");

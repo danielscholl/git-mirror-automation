@@ -22,7 +22,7 @@ Required permissions on the Azure DevOps access token: **Code (read), Build (Rea
 
 * `type` must be a valid DevOps project where the builds will reside.
 * `buildToClone` must be the name of the build to be cloned for every repository
-* `buildNamePrefix` will be used as the buildname prefix; suffix = repository name (if source is in same DevOps account but different project then the suffix will be `<project name> - <repo name>`)
+* `buildNamePrefix` will be used as the buildname prefix; suffix = repository name (if source is in same DevOps organization but different project then the suffix will be `<project name> - <repo name>`)
 
 **Note:** In order to create builds that use Github as a source repository you must create a [Github connection](https://docs.microsoft.com/azure/devops/boards/github/connect-to-github) in Azure DevOps.
 
@@ -72,8 +72,8 @@ function Mirror-To($target) {
 git fetch --prune
 
 # push to these targets
-$devOpsAccount = "<devops account name>"
-$devOpsProject = "<project name in your devops account>"
+$devOpsAccount = "<DevOps organization name>"
+$devOpsProject = "<project name in your DevOps organization>"
 $gitlabUser = "<your gitlab username>"
 
 Mirror-To "https://$(DevOpsPAT)@dev.azure.com/$devOpsAccount/$devOpsProject/_git/$repoName"
@@ -107,7 +107,7 @@ function Mirror-To($target) {
 git fetch --prune
 
 # push to these targets
-$devOpsAccount = "<devops account name>"
+$devOpsAccount = "<DevOps organization name>"
 
 Mirror-To "https://$(DevOpsPAT)@dev.azure.com/$devOpsAccount/$devOpsProject/_git/$repoName"
 ```
