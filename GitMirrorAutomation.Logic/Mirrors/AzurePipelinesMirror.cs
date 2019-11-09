@@ -116,7 +116,7 @@ namespace GitMirrorAutomation.Logic.Mirrors
             // real inefficient but there seems to be no way to modify a JsonElement + this usually isn't executed a million times..
             var jObject = JObject.Parse(buildDefinition.GetRawText());
 
-            // repository settings depend on the on the type of source
+            // repository settings depend on the type of source
             switch (_repositorySource.Type)
             {
                 case "github.com":

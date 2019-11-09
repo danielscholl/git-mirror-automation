@@ -36,23 +36,26 @@ namespace GitMirrorAutomation.Logic.Targets
 
         public async Task CreateRepositoryAsync(IRepositorySource source, IRepository repository, CancellationToken cancellationToken)
         {
-            if (!(repository is AzureDevOpsRepository adoRepo))
-                throw new NotSupportedException($"Cannot create DevOps repository from {repository.GetType()}");
-
             await EnsureAccessToken(cancellationToken);
             var json = JsonSerializer.Serialize(new Repository
             {
                 Name = repository.Name,
             });
 
-            if (DevOpsProject == null)
+            var project = DevOpsProject;
+            if (project == null)
             {
+                if (!(repository is AzureDevOpsRepository adoRepo))
+                    throw new NotSupportedException($"Cannot create DevOps repository from {repository.GetType()}");
+
+                project = adoRepo.Project;
+
                 if (!(source is AzureDevOpsRepositoryTarget adoSource))
                     throw new NotSupportedException($"Can only mirror entire Azure DevOps organization to another Azure DevOps organization, but found source: {source.GetType()}");
                 // may be missing in target org
                 await CreateProjectAsync(adoSource, adoRepo, cancellationToken);
             }
-            var response = await HttpClient.PostAsync($"https://dev.azure.com/{DevOpsOrganization}/{DevOpsProject ?? adoRepo.Project}/_apis/git/repositories?api-version=5.1", new StringContent(json, Encoding.UTF8, "application/json"), cancellationToken);
+            var response = await HttpClient.PostAsync($"https://dev.azure.com/{DevOpsOrganization}/{project}/_apis/git/repositories?api-version=5.1", new StringContent(json, Encoding.UTF8, "application/json"), cancellationToken);
             response.EnsureSuccessStatusCode();
         }
 
