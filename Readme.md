@@ -33,15 +33,13 @@ Once the build pipeline exists it is triggered on every push as well as a schedu
 
 ![Architecture](screenshots/architecture.png)
 
-The service has 3 major parts, all of them are executed as part of the Azure function:
+The service has 3 major parts, all of them are executed as part of the Azure function once for every configuration file (loaded from storage):
 
-As a first step the Azure function is executed on a schedule and loads the configuration files from storage (1).
+* (1) Then function scans the source for new repositories
+* (2) It then creates a build that automatically mirrors the repository on any future changes
+* (3) And finally it creates the target repositories (with identical names)
 
-Then it:
-
-* (2) scans the source repository for new repositories
-* (3) creates a mirror that automatically mirrors the repository on any future changes
-* (4) creates the target repositories (with identical names)
+For every newly discovered repository this infrastructure is set up automatically and since the function runs on a timer (ever 5 minutes) any new Github repository is automatically synced to the targets within 5 minutes of creation.
 
 See [configuration](docs/Configuration.md), [supported sources](docs/Supported%20sources.md), [supported mirrors](docs/Supported%20mirrors.md) and [supported targets](docs/Supported%20targets.md) for more details on each.
 
