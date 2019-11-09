@@ -141,8 +141,6 @@ namespace GitMirrorAutomation.Logic.Mirrors
                     jObject["repository"]["properties"]["safeRepository"] = userNameAndRepo;
                     jObject["repository"]["properties"]["shortName"] = repository.Name;
                     jObject["name"] = _config.BuildNamePrefix + repository.Name;
-
-                    jObject["repository"]["url"] = githubWebUrl;
                     break;
                 case "dev.azure.com":
                     var ado = (AzureDevOpsRepositoryTarget)_repositorySource;
