@@ -11,7 +11,7 @@ namespace GitMirrorAutomation.Tests
 {
     public class GithubRepositorySourceTests
     {
-        private const string _repoUnderTest = "GitMirrorAutomation";
+        private const string _repoUnderTest = "git-mirror-automation";
         private const string _userUnderTest = "MarcStan";
 
         [Test]
