@@ -1,6 +1,6 @@
 # Git mirror automation
 
-Automate the mirroring of **public** git repositories across multiple services (such as github, gitlab & Azure DevOps).
+Automate the mirroring of git repositories across multiple services (such as github, gitlab & Azure DevOps).
 
 [![GitMirrorAutomation](https://dev.azure.com/marcstanlive/Opensource/_apis/build/status/48)](https://dev.azure.com/marcstanlive/Opensource/_build/definition?definitionId=48)
 
@@ -8,7 +8,7 @@ Automate the mirroring of **public** git repositories across multiple services (
 
 A long time ago I wrote about [mirroring github, gitlab and Azure DevOps repositories](https://marcstan.net/blog/2018/08/31/Mirror-github-gitlab-and-VSTS-repositories/).
 
-I still use this workflow (with slight improvements) to mirror repositories but it still requires a set of manual steps. I decided to [automate](https://xkcd.com/1319/) them  with this azure function.
+I still use this workflow (with slight improvements) to mirror repositories but it still required a set of manual steps. I decided to [automate](https://xkcd.com/1319/) them with this azure function.
 
 # Manual steps this project solves
 
