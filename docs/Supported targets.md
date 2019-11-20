@@ -20,7 +20,9 @@ Required Gitlab scopes on the access token: **api**
 
 ## Azure DevOps Project
 
-Azure DevOps projects can be private (default) or public. Either way authentication is required to create repositories.
+Azure DevOps projects can be private (default) or public. It is up to you to configure this in the [settings](https://docs.microsoft.com/azure/devops/organizations/public/make-project-public)
+
+Either way authentication is required to create repositories.
 
 ``` json
 {

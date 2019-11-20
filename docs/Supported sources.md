@@ -2,9 +2,11 @@
 
 Currently these services are supported as (git) sources to be mirrored:
 
-## Github User (public repositories only)
+## Github User (public repositories)
 
-Currently only public repositories are supported as a source:
+For public repositories no access token is needed.
+
+You do however need to have write permissions to the repositories (as the build mirror works by installing default webhooks into the repo to receive notifications on updates):
 
 ``` json
 {
@@ -12,7 +14,7 @@ Currently only public repositories are supported as a source:
 }
 ```
 
-## Azure DevOps Project (public repositories only):
+## Azure DevOps Project (public repositories):
 
 This feature only works if you have [made your project public](https://docs.microsoft.com/azure/devops/organizations/public/make-project-public) in which case all its repositories automatically become public can be mirrored at once.
 
@@ -26,6 +28,8 @@ This feature only works if you have [made your project public](https://docs.micr
 
 By default Azure DevOps projects are private. To use a private DevOps project as a mirror source you must provide an access token along with the url.
 
+:warning: When cloning private repositories make sure the target is also private or you will expose your private repositories!
+
 ``` json
 {
   "source": {
@@ -36,7 +40,7 @@ By default Azure DevOps projects are private. To use a private DevOps project as
     ],
     "accessToken": {
       ..
-    },
+    }
   }
 }
 ```
@@ -46,6 +50,8 @@ Required permissions on the Azure DevOps access token: **Code (read)**
 ## Entire Azure DevOps organization:
 
 You can also clone an entire Azure DevOps organization (all projects). To use a DevOps organization as a mirror source you must provide an access token along with the url.
+
+:warning: When cloning private repositories make sure the target is also private or you will expose your private repositories!
 
 ``` json
 {

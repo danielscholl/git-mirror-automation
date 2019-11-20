@@ -31,15 +31,15 @@ Once the build pipeline exists it is triggered on every push as well as a schedu
 
 # Overview & Supported features
 
+Mirror repositories between Github, Gitlab & Azure DevOps using free Azure Pipelines for mirror automation!
+
 ![Architecture](screenshots/architecture.png)
 
 The service has 3 major parts, all of them are executed as part of the Azure function once for every configuration file (loaded from storage):
 
-* (1) Then function scans the source for new repositories
-* (2) It then creates a build that automatically mirrors the repository on any future changes
-* (3) And finally it creates the target repositories (with identical names)
-
-For every newly discovered repository this infrastructure is set up automatically and since the function runs on a timer (ever 5 minutes) any new Github repository is automatically synced to the targets within 5 minutes of creation.
+* (1) Then function scans the source (by default every 5 minutes) for new repositories
+* (2) For every new repository it creates a build that automatically mirrors the repository on any future changes (git push on any branch)
+* (3) And finally it creates the target repositories (with identical names) at the desired target services
 
 See [configuration](docs/Configuration.md), [supported sources](docs/Supported%20sources.md), [supported mirrors](docs/Supported%20mirrors.md) and [supported targets](docs/Supported%20targets.md) for more details on each.
 
