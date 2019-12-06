@@ -72,7 +72,7 @@ namespace GitMirrorAutomation.Logic.Mirrors
                         GitUrl = $"https://dev.azure.com/{ado.DevOpsOrganization}/{parts[0]}/_git/{parts[1]}"
                     };
                 }
-                var expectedRepoUrl = _repositorySource.GetRepositoryUrl(repo);
+                var expectedRepoUrls = _repositorySource.GetRepositoryUrls(repo);
 
                 // repo property isn't loaded in overall list, so get definition
                 // to ensure build is using correct source repo
@@ -81,9 +81,9 @@ namespace GitMirrorAutomation.Logic.Mirrors
                 // normalize because github/gitlab allow both urls ending in .git and without
                 // and Azure DevOps builds can also use both types of urls as source for builds
                 var foundUrl = Normalize(buildWithRepo.Repository.Url);
-                expectedRepoUrl = Normalize(expectedRepoUrl);
-                if (foundUrl != expectedRepoUrl)
-                    throw new NotSupportedException($"Expected build '{build.Name}' to use repository '{expectedRepoUrl}' but it uses '{buildWithRepo.Repository.Url}'");
+                expectedRepoUrls = expectedRepoUrls.Select(Normalize).ToArray();
+                if (!expectedRepoUrls.Contains(foundUrl))
+                    throw new NotSupportedException($"Expected build '{build.Name}' to use one of these repos: '{string.Join(", ", expectedRepoUrls)}' as source but it uses '{buildWithRepo.Repository.Url}'");
 
                 mirrors.Add(new Mirror
                 {
@@ -121,8 +121,8 @@ namespace GitMirrorAutomation.Logic.Mirrors
             {
                 case "github.com":
                     var gh = (GithubRepositorySource)_repositorySource;
-                    var githubWebUrl = _repositorySource.GetRepositoryUrl(repository);
-                    // has .git suffix which must not be used with some of the properties which we must set
+                    var githubWebUrl = _repositorySource.GetRepositoryUrls(repository).First();
+                    // may have .git suffix which must not be used with some of the properties which we must set
                     if (githubWebUrl.EndsWith(".git", StringComparison.OrdinalIgnoreCase))
                         githubWebUrl = githubWebUrl.Substring(0, githubWebUrl.Length - ".git".Length);
 
@@ -152,7 +152,7 @@ namespace GitMirrorAutomation.Logic.Mirrors
 
                     jObject["repository"]["id"] = adoRepo.Id;
                     jObject["repository"]["name"] = repository.Name;
-                    jObject["repository"]["url"] = _repositorySource.GetRepositoryUrl(repository);
+                    jObject["repository"]["url"] = _repositorySource.GetRepositoryUrls(repository).First();
                     jObject["name"] = _config.BuildNamePrefix + project + " - " + repository.Name;
                     break;
                 default:

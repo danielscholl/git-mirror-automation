@@ -19,10 +19,14 @@ namespace GitMirrorAutomation.Tests
         {
             var githubUrl = $"https://github.com/{_userUnderTest}";
             var scanner = new GithubRepositorySource(githubUrl);
-            scanner.GetRepositoryUrl(new Repository
+            scanner.GetRepositoryUrls(new Repository
             {
                 Name = _repoUnderTest
-            }).Should().Be($"{githubUrl}/{_repoUnderTest}.git");
+            }).Should().BeEquivalentTo(new[]
+            {
+                $"{githubUrl}/{_repoUnderTest}",
+                $"{githubUrl}/{_repoUnderTest}.git"
+            });
         }
 
         [Test]
@@ -30,11 +34,15 @@ namespace GitMirrorAutomation.Tests
         {
             var githubUrl = $"https://github.com/{_userUnderTest}";
             var scanner = new GithubRepositorySource(githubUrl);
-            scanner.GetRepositoryUrl(new GithubRepository
+            scanner.GetRepositoryUrls(new GithubRepository
             {
                 Name = _repoUnderTest,
                 GitUrl = githubUrl
-            }).Should().Be(githubUrl);
+            }).Should().BeEquivalentTo(new[]
+            {
+                $"{githubUrl}/{_repoUnderTest}",
+                $"{githubUrl}/{_repoUnderTest}.git"
+            });
         }
 
         [Test]

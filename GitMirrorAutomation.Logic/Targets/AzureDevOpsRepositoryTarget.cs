@@ -77,8 +77,12 @@ namespace GitMirrorAutomation.Logic.Targets
             return repos.ToArray();
         }
 
-        public string GetRepositoryUrl(IRepository repository)
-            => repository is AzureDevOpsRepository adoRepo ? adoRepo.GitUrl : $"https://dev.azure.com/{DevOpsOrganization}/{DevOpsProject}/_git/{repository.Name}";
+        public string[] GetRepositoryUrls(IRepository repository)
+            => new[]
+            {
+                $"https://dev.azure.com/{DevOpsOrganization}/{DevOpsProject}/_git/{repository.Name}",
+                $"https://{DevOpsOrganization}@dev.azure.com/{DevOpsOrganization}/{DevOpsProject}/_git/{repository.Name}"
+            };
 
         private Task<Project[]> GetProjectsAsync(CancellationToken cancellationToken)
             => GetCollectionAsync<Project>($"https://dev.azure.com/{DevOpsOrganization}/_apis/projects?api-version=5.1", cancellationToken);

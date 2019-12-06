@@ -76,7 +76,11 @@ namespace GitMirrorAutomation.Logic.Targets
                 .ToArray();
         }
 
-        public string GetRepositoryUrl(IRepository repository)
-            => repository is GitlabRepository glRepo ? glRepo.GitUrl : $"https://gitlab.com/{UserName}/{repository.Name}.git";
+        public string[] GetRepositoryUrls(IRepository repository)
+            => new[]
+            {
+                $"https://gitlab.com/{UserName}/{repository.Name}",
+                $"https://gitlab.com/{UserName}/{repository.Name}.git"
+            };
     }
 }
