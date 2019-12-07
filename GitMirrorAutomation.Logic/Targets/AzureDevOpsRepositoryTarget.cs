@@ -78,11 +78,16 @@ namespace GitMirrorAutomation.Logic.Targets
         }
 
         public string[] GetRepositoryUrls(IRepository repository)
-            => new[]
+        {
+            var project = DevOpsProject ?? (repository is AzureDevOpsRepository ado ?
+                            ado.Project :
+                            throw new NotSupportedException($"Unsupported source {repository.GetType()}"));
+            return new[]
             {
-                $"https://dev.azure.com/{DevOpsOrganization}/{DevOpsProject}/_git/{repository.Name}",
-                $"https://{DevOpsOrganization}@dev.azure.com/{DevOpsOrganization}/{DevOpsProject}/_git/{repository.Name}"
+                $"https://dev.azure.com/{DevOpsOrganization}/{project}/_git/{repository.Name}",
+                $"https://{DevOpsOrganization}@dev.azure.com/{DevOpsOrganization}/{project}/_git/{repository.Name}"
             };
+        }
 
         private Task<Project[]> GetProjectsAsync(CancellationToken cancellationToken)
             => GetCollectionAsync<Project>($"https://dev.azure.com/{DevOpsOrganization}/_apis/projects?api-version=5.1", cancellationToken);
