@@ -48,4 +48,4 @@ For both these services access tokens are needed again to create the resources.
 
 ```
 
-See [working examples](./GitMirrorAutomation.Tests/WorkingExamples) for an additional set of working configurations.
+See [working examples](../GitMirrorAutomation.Tests/WorkingExamples) for an additional set of working configurations.

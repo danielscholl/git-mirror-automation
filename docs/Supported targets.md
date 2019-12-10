@@ -38,6 +38,8 @@ Required permissions on the Azure DevOps access token: **Code (read, write & man
 
 ## Entire Azure DevOps organization
 
+This copies the entire organization structure (project & repositories). It only copies the repository content, no work items/builds/etc. are mirrored.
+
 **Note:** When using an Azure DevOps organization as a target then you must also use an Azure DevOps organization as the source.
 
 ``` json
@@ -54,4 +56,4 @@ Required permissions on the Azure DevOps access token: **Code (read, write & man
 
 ## Access token
 
-See [access token](./docs/Access%20token.md) for documentation on the access token syntax.
+See [access token](Access%20token.md) for documentation on the access token syntax.

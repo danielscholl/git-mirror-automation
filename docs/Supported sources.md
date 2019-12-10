@@ -16,7 +16,7 @@ You do however need to have write permissions to the repositories (as the build 
 
 ## Azure DevOps Project (public repositories):
 
-This feature only works if you have [made your project public](https://docs.microsoft.com/azure/devops/organizations/public/make-project-public) in which case all its repositories automatically become public can be mirrored at once.
+This feature only works if you have [made your project public](https://docs.microsoft.com/azure/devops/organizations/public/make-project-public) in which case all its repositories automatically become public and can be mirrored at once.
 
 ``` json
 {
@@ -74,8 +74,8 @@ You can also clone an entire Azure DevOps organization (all projects). To use a 
 
 Required permissions on the Azure DevOps access token: **Code (read), Project and Team (Read)**
 
-**Note:** When using this source then the only type of valid target is another DevOps organization!
+**Note:** When using this source then the only type of valid target is another DevOps organization! It will recreate the same project structure (creating projects if they are missing) and clone all repositories. No work items/builds/etc. are cloned, only sourcecode.
 
 ## Access token
 
-See [access token](./docs/Access%20token.md) for documentation on the access token syntax.
+See [access token](Access%20token.md) for documentation on the access token syntax.
