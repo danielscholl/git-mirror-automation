@@ -2,8 +2,6 @@
 
 Automate the mirroring of git repositories across multiple services (such as github, gitlab & Azure DevOps).
 
-[![GitMirrorAutomation](https://dev.azure.com/marcstanlive/Opensource/_apis/build/status/48)](https://dev.azure.com/marcstanlive/Opensource/_build/definition?definitionId=48)
-
 # Motivation
 
 A long time ago I wrote about [mirroring github, gitlab and Azure DevOps repositories](https://marcstan.net/blog/2018/08/31/Mirror-github-gitlab-and-VSTS-repositories/).
