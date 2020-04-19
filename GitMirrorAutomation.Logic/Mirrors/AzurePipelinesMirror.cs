@@ -161,8 +161,10 @@ namespace GitMirrorAutomation.Logic.Mirrors
 
             var json = jObject.ToString();
             var response = await HttpClient.PostAsync($"https://dev.azure.com/{DevOpsOrganization}/{DevOpsProject}/_apis/build/definitions?api-version=5.1", new StringContent(json, Encoding.UTF8, "application/json"), cancellationToken);
-            response.EnsureSuccessStatusCode();
             var createdBuildJson = await response.Content.ReadAsStringAsync();
+            if (!response.IsSuccessStatusCode)
+                throw new InvalidOperationException($"Failed to create build. Response: " + createdBuildJson);
+
             var build = JsonSerializer.Deserialize<Build>(createdBuildJson, JsonSettings.Default);
 
             _log.LogInformation($"Queue initial build to mirror {repository.Name}");
