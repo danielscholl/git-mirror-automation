@@ -140,7 +140,7 @@ Enter "*" in the branch specification to tell it to run the build for every push
 
 (Optionally) also set up a scheduled build to run periodically (e.g. weekly). Some changes in the repository are not detected (such as when you push tags without pushing commits). This scheduled build ensures that they are copied over eventually.
 
-Now save the build with a name like "[Github clone] \<repo name>" (I also placed the build in a seperate folder `Github Clones`, that way it [doesn't clutter the list of regular builds](https://dev.azure.com/marcstanlive/Opensource/_build?view=folders)).
+Now save the build with a name like "[Github clone] \<repo name>" (I also placed the build in a seperate folder `Github Clones`, that way it [doesn't clutter the list of regular builds](https://dev.azure.com/marcstan/Opensource/_build?view=folders)).
 
 **Pro tip:** There is one further change I recommend you make to the build: Right click the powershell task and create a taskgroup from it. In the task group then configure the variables like this:
 

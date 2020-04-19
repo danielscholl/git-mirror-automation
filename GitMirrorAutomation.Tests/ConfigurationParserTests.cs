@@ -25,7 +25,7 @@ namespace GitMirrorAutomation.Tests
             var processor = new ConfigurationParser(new Mock<ILogger>().Object);
             var source = processor.GetRepositorySource(ToJson(new
             {
-                source = "https://dev.azure.com/marcstanlive/Opensoure",
+                source = "https://dev.azure.com/marcstan/Opensoure",
                 accessToken = new
                 {
                     source = "https://mykeyvault.vault.azure.net",
@@ -41,7 +41,7 @@ namespace GitMirrorAutomation.Tests
             var processor = new ConfigurationParser(new Mock<ILogger>().Object);
             var source = processor.GetRepositorySource(ToJson(new
             {
-                source = "https://dev.azure.com/marcstanlive/*",
+                source = "https://dev.azure.com/marcstan/*",
                 accessToken = new
                 {
                     source = "https://mykeyvault.vault.azure.net",
@@ -60,7 +60,7 @@ namespace GitMirrorAutomation.Tests
             {
                 BuildNamePrefix = "[Build]",
                 BuildToClone = "[Build] A",
-                Type = "https://dev.azure.com/marcstanlive/Opensource"
+                Type = "https://dev.azure.com/marcstan/Opensource"
             }, source);
             mirror.Should().NotBeNull();
         }

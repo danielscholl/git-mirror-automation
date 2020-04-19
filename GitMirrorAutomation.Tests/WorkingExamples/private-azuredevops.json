@@ -7,7 +7,7 @@
     }
   },
     "mirror-via": {
-      "type": "https://dev.azure.com/marcstanlive/Opensource",
+      "type": "https://dev.azure.com/marcstan/Opensource",
       "buildToClone": "[Clone] MyBuild",
       "buildNamePrefix": "[Clone] ",
       "accessToken": {

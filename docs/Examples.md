@@ -20,7 +20,7 @@ For both these services access tokens are needed again to create the resources.
 {
   "source": "https://github.com/MarcStan",
   "mirror-via": {
-    "type": "https://dev.azure.com/marcstanlive/Opensource",
+    "type": "https://dev.azure.com/marcstan/Opensource",
     "buildToClone": "[Github clone] MyBuild",
     "buildNamePrefix": "[Github clone] ",
     "accessToken": {
@@ -37,7 +37,7 @@ For both these services access tokens are needed again to create the resources.
       }
     },
     {
-      "target": "https://dev.azure.com/marcstanlive/Opensource",
+      "target": "https://dev.azure.com/marcstan/Opensource",
       "accessToken": {
         "source": "https://mykeyvault.vault.azure.net",
         "secretName": "MyDevOpsGitPAT"
