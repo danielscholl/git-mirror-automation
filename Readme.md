@@ -1,5 +1,10 @@
 # Git mirror automation
 
+<a href="https%3A%2F%2Fgithub.com%2Fdanielscholl%2Fgit-mirror-automation%2Fblob%2Fmaster%2Fdeploy%2Fdeploy.json" target="_blank">
+    <img src="http://azuredeploy.net/deploybutton.png"/>
+</a>
+
+
 Automate the mirroring of git repositories across multiple services (such as github, gitlab & Azure DevOps).
 
 # Motivation
